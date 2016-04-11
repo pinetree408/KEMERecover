@@ -1,23 +1,25 @@
 
-import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.event.ActionEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 
 import javax.swing.JFrame;
-import javax.swing.JMenuItem;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.JScrollPane;
+import javax.swing.text.BadLocationException;
 
-public class ModeErrorAlarm extends JFrame implements ActionListener, WindowListener {
+import org.jnativehook.GlobalScreen;
+import org.jnativehook.NativeHookException;
+import org.jnativehook.NativeInputEvent;
+import org.jnativehook.SwingDispatchService;
+import org.jnativehook.keyboard.NativeKeyEvent;
+import org.jnativehook.keyboard.NativeKeyListener;
 
-	/** Menu Items */
-	private JMenuItem menuItemQuit, menuItemClear;
+public class ModeErrorAlarm extends JFrame implements WindowListener, NativeKeyListener {
 	
 	/** The text area to display event info. */
 	private JTextArea txtEventInfo;
@@ -39,21 +41,43 @@ public class ModeErrorAlarm extends JFrame implements ActionListener, WindowList
 		scrollPane.setPreferredSize(new Dimension(375, 125));
 		add(scrollPane, BorderLayout.CENTER);
 		
+		GlobalScreen.setEventDispatcher(new SwingDispatchService());
+		
 		setVisible(true);
+		
 	}
 	
-	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == menuItemQuit) {
-			this.dispose();
+	private void displayEventInfo(final NativeInputEvent e) {
+		txtEventInfo.append("\n" + e.paramString());
+
+		try {
+			//Clean up the history to reduce memory consumption.
+			if (txtEventInfo.getLineCount() > 100) {
+				txtEventInfo.replaceRange("", 0, txtEventInfo.getLineEndOffset(txtEventInfo.getLineCount() - 1 - 100));
+			}
+
+			txtEventInfo.setCaretPosition(txtEventInfo.getLineStartOffset(txtEventInfo.getLineCount() - 1));
 		}
-		else if (e.getSource() == menuItemClear) {
-			txtEventInfo.setText("");
+		catch (BadLocationException ex) {
+			txtEventInfo.setCaretPosition(txtEventInfo.getDocument().getLength());
 		}
+	}
+
+	@Override
+	public void nativeKeyPressed(NativeKeyEvent e) {
+		displayEventInfo(e);	
 	}
 	
 	@Override
 	public void windowOpened(WindowEvent e) {
 		// TODO Auto-generated method stub
+		try {
+			GlobalScreen.registerNativeHook();
+		}
+		catch (NativeHookException ex) {
+			txtEventInfo.append("Error: " + ex.getMessage() + "\n");
+		}
+		GlobalScreen.addNativeKeyListener(this);
 	}
 
 	@Override
@@ -98,6 +122,18 @@ public class ModeErrorAlarm extends JFrame implements ActionListener, WindowList
 	@Override
 	public void windowDeactivated(WindowEvent e) {
 		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void nativeKeyReleased(NativeKeyEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void nativeKeyTyped(NativeKeyEvent arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
