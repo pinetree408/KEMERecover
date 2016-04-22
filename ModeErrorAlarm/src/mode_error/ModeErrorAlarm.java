@@ -29,6 +29,9 @@ import org.jnativehook.keyboard.NativeKeyListener;
 
 public class ModeErrorAlarm extends JFrame implements WindowListener, NativeKeyListener {
 	
+	/** The Constant serialVersionUID. */
+	private static final long serialVersionUID = 821193587029528109L;
+	
 	/** The text area to display event info. */
 	private JTextArea txtEventInfo;
 	private ArrayList<String> restoreString;
