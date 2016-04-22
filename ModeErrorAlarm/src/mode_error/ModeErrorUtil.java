@@ -1,4 +1,5 @@
 package mode_error;
+
 import java.awt.event.KeyEvent;
 import java.awt.im.InputContext;
 import java.io.BufferedReader;

@@ -2,20 +2,10 @@ package mode_error;
 
 import mode_error.ModeErrorUtil;
 
-import java.io.BufferedReader;
-
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.im.InputContext;
 import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Color;
