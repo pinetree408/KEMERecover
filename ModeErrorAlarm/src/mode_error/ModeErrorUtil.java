@@ -116,10 +116,8 @@ public class ModeErrorUtil {
 		enF.put("x", 25);
 		enF.put("v", 26);
 		enF.put("g", 27);
-		
-		String regF = "|r|R|rt|s|sw|sg|e|f|fr|fa|fq|ft|fx|fv|fg|a|q|qt|t|T|d|w|c|z|x|v|g";
-		
-		//String regF = "rt|sw|sg|fr|fa|fq|ft|fx|fv|fg|qt|r|R|s|e|f|a|q|t|T|d|w|c|z|x|v|g|";
+
+	    String regF = "rt|sw|sg|fr|fa|fq|ft|fx|fv|fg|qt|r|R|s|e|f|a|q|t|T|d|w|c|z|x|v|g|";
 		
 		String regex = "("+regH+")("+regB+")(("+regF+")(?=("+regH+")("+regB+"))|("+regF+"))";
 		
@@ -256,4 +254,5 @@ public class ModeErrorUtil {
 	    }
 	    return result;	
 	}
+
 }

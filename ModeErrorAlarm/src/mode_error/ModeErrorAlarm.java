@@ -34,9 +34,10 @@ public class ModeErrorAlarm extends JFrame implements WindowListener, NativeKeyL
 	
 	/** The text area to display event info. */
 	private JTextArea txtEventInfo;
+
 	private ArrayList<String> restoreString;
 	private ArrayList<String> tmpString;
-	private boolean state;
+	private String state;
 	private int backCount;
 	private Robot robot;
 	
@@ -62,7 +63,7 @@ public class ModeErrorAlarm extends JFrame implements WindowListener, NativeKeyL
 			e.printStackTrace();
 		}
 		
-		state = false;
+		state = "store";
 		backCount = 0;
 		
 		txtEventInfo = new JTextArea();
@@ -108,10 +109,10 @@ public class ModeErrorAlarm extends JFrame implements WindowListener, NativeKeyL
 	
 	public void robotInput(ArrayList<String> arrayString) {
 		
-		
-		int size = arrayString.size();
+		int restoreSize = arrayString.size();
+		int deleteSize = arrayString.size();
 		if (ModeErrorUtil.nowlanguage() == "ko") {
-			size = ModeErrorUtil.eTok(ModeErrorUtil.joinArrayList(arrayString).toLowerCase()).length();
+			deleteSize = ModeErrorUtil.eTok(ModeErrorUtil.joinArrayList(arrayString).toLowerCase()).length();
 		}
 		
 		robot.keyPress(KeyEvent.KEY_LOCATION_RIGHT);
@@ -121,12 +122,12 @@ public class ModeErrorAlarm extends JFrame implements WindowListener, NativeKeyL
 		robot.keyRelease(KeyEvent.KEY_LOCATION_RIGHT);
 		robot.keyRelease(KeyEvent.VK_SPACE);
 		
-		for (int i = 0; i < size; i++) {
+		for (int i = 0; i < deleteSize - 1; i++) {
 			robot.keyPress(KeyEvent.VK_BACK_SPACE);
 			robot.keyRelease(KeyEvent.VK_BACK_SPACE);
 		}
 		
-		for (int i = 0; i < size - 1; i++) {
+		for (int i = 0; i < restoreSize; i++) {
 			robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
 			robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i)));
 		}
@@ -135,55 +136,59 @@ public class ModeErrorAlarm extends JFrame implements WindowListener, NativeKeyL
 
 	@Override
 	public void nativeKeyPressed(NativeKeyEvent e) {
-		
-		if (state == false) {
-			
-			// backspace => e.getKeyCode = 14
-			if (e.getKeyCode() == 14 && restoreString.size() != 0) {
-				
-				state = true;
 
-				if (backCount == 0) {
-					boolean test = ModeErrorUtil.isWordInDic(restoreString);
-					if (test == true){
-						robotInput(restoreString);
-					}
-					backCount = 1;
-				} else {
-					robotInput(restoreString);
-					backCount = 0;
-				}
+		switch(state) {
+        	case "store":
+        		
+    			// backspace => e.getKeyCode = 14
+    			if (e.getKeyCode() == 14 && restoreString.size() != 0) {
 
-			} else {
+    				if (backCount == 0) {
+    					if (ModeErrorUtil.isWordInDic(restoreString) == true){
+    						state = "recover";
+    						robotInput(restoreString);
+    					}
+    					backCount = 1;
+    				} else {
+    					state = "recover";
+    					robotInput(restoreString);
+    					backCount = 0;
+    				}
 
-				// space => e.getKeyCode = 57
-				if (e.getKeyCode() == 57) {
-					restoreString.clear();
-					tmpString.clear();
-				} else {
-					if (e.getKeyCode() != 14) {
-						restoreString.add(NativeKeyEvent.getKeyText(e.getKeyCode()));
-						tmpString.add(NativeKeyEvent.getKeyText(e.getKeyCode()));
-					}
-				}
-			}
-			
-		} else {
-			
-			if (tmpString.size() == 0) {
-				tmpString.addAll(restoreString);
-			}
-			
-			if (tmpString.size() == 1){
-				state = false;
-				restoreString.remove(restoreString.size()-1);
-				tmpString.clear();
-			}
-			
-			if (e.getKeyCode() != 14 && e.getKeyCode() != 57) {
-				tmpString.remove(tmpString.size()-1);
-			}
-			
+    			} else {
+
+    				// space => e.getKeyCode = 57
+    				if (e.getKeyCode() == 57) {
+    					restoreString.clear();
+    					tmpString.clear();
+    					backCount = 0;
+    				} else {
+    					if (e.getKeyCode() != 14) {
+    						restoreString.add(NativeKeyEvent.getKeyText(e.getKeyCode()));
+    						tmpString.add(NativeKeyEvent.getKeyText(e.getKeyCode()));
+    					}
+    				}
+    			}
+    			
+        		break;
+   
+        	case "recover":
+        		
+    			if (tmpString.size() == 0) {
+    				tmpString.addAll(restoreString);
+    			}
+    			
+    			if (tmpString.size() == 1){
+    				state = "store";
+    				restoreString.remove(restoreString.size()-1);
+    				tmpString.clear();
+    			}
+    			
+    			if (e.getKeyCode() != 14 && e.getKeyCode() != 57) {
+    				tmpString.remove(tmpString.size()-1);
+    			}
+    			
+        		break;
 		}
 		
 		displayEventInfo(e);
@@ -257,5 +262,5 @@ public class ModeErrorAlarm extends JFrame implements WindowListener, NativeKeyL
 		// TODO Auto-generated method stub
 		
 	}
-
+	
 }
