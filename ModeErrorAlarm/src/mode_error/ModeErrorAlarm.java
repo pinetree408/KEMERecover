@@ -13,6 +13,9 @@ import java.awt.Dimension;
 import java.awt.Robot;
 import java.awt.Toolkit;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
@@ -27,18 +30,16 @@ import org.jnativehook.SwingDispatchService;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
+import com.sun.jna.Platform;
+
 public class ModeErrorAlarm extends JFrame implements WindowListener, NativeKeyListener {
 	
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 821193587029528109L;
 	
 	/** The text area to display event info. */
-	private JTextArea txtEventInfo;
+	private static JTextArea txtEventInfo;
 
-	private ArrayList<String> restoreString;
-	private ArrayList<String> tmpString;
-	private String state;
-	private int backCount;
 	private Robot robot;
 	
 	public ModeErrorAlarm() {
@@ -53,18 +54,12 @@ public class ModeErrorAlarm extends JFrame implements WindowListener, NativeKeyL
 		
 		setLocation((screenSize.width - frameSize.width), 0);
 		
-		restoreString = new ArrayList<String>();
-		tmpString = new ArrayList<String>();
-		
 		try {
 			robot = new Robot();
 		} catch (AWTException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		state = "store";
-		backCount = 0;
 		
 		txtEventInfo = new JTextArea();
 		txtEventInfo.setEditable(false);
@@ -110,9 +105,11 @@ public class ModeErrorAlarm extends JFrame implements WindowListener, NativeKeyL
 	public void robotInput(ArrayList<String> arrayString) {
 		
 		int restoreSize = arrayString.size();
-		int deleteSize = arrayString.size();
-		if (ModeErrorUtil.nowlanguage() == "ko") {
-			deleteSize = ModeErrorUtil.eTok(ModeErrorUtil.joinArrayList(arrayString).toLowerCase()).length();
+		int deleteSize = arrayString.size() - 1;
+		String nowLang = ModeErrorUtil.nowlanguage();
+		
+		if (nowLang.equals("ko")) {
+			deleteSize = ModeErrorUtil.eTok(ModeErrorUtil.joinArrayList(arrayString).toLowerCase()).length() - 1;
 		}
 		
 		robot.keyPress(KeyEvent.KEY_LOCATION_RIGHT);
@@ -122,7 +119,13 @@ public class ModeErrorAlarm extends JFrame implements WindowListener, NativeKeyL
 		robot.keyRelease(KeyEvent.KEY_LOCATION_RIGHT);
 		robot.keyRelease(KeyEvent.VK_SPACE);
 		
-		for (int i = 0; i < deleteSize - 1; i++) {
+		while(true) {
+			if(!nowLang.equals(ModeErrorUtil.nowlanguage())) {
+				break;
+			}
+		}
+		
+		for (int i = 0; i < deleteSize; i++) {
 			robot.keyPress(KeyEvent.VK_BACK_SPACE);
 			robot.keyRelease(KeyEvent.VK_BACK_SPACE);
 		}
@@ -131,67 +134,33 @@ public class ModeErrorAlarm extends JFrame implements WindowListener, NativeKeyL
 			robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
 			robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i)));
 		}
-		
+
 	}
 
 	@Override
 	public void nativeKeyPressed(NativeKeyEvent e) {
-
-		switch(state) {
-        	case "store":
-        		
-    			// backspace => e.getKeyCode = 14
-    			if (e.getKeyCode() == 14 && restoreString.size() != 0) {
-
-    				if (backCount == 0) {
-    					if (ModeErrorUtil.isWordInDic(restoreString) == true){
-    						state = "recover";
-    						robotInput(restoreString);
-    					}
-    					backCount = 1;
-    				} else {
-    					state = "recover";
-    					robotInput(restoreString);
-    					backCount = 0;
-    				}
-
-    			} else {
-
-    				// space => e.getKeyCode = 57
-    				if (e.getKeyCode() == 57) {
-    					restoreString.clear();
-    					tmpString.clear();
-    					backCount = 0;
-    				} else {
-    					if (e.getKeyCode() != 14) {
-    						restoreString.add(NativeKeyEvent.getKeyText(e.getKeyCode()));
-    						tmpString.add(NativeKeyEvent.getKeyText(e.getKeyCode()));
-    					}
-    				}
-    			}
-    			
-        		break;
-   
-        	case "recover":
-        		
-    			if (tmpString.size() == 0) {
-    				tmpString.addAll(restoreString);
-    			}
-    			
-    			if (tmpString.size() == 1){
-    				state = "store";
-    				restoreString.remove(restoreString.size()-1);
-    				tmpString.clear();
-    			}
-    			
-    			if (e.getKeyCode() != 14 && e.getKeyCode() != 57) {
-    				tmpString.remove(tmpString.size()-1);
-    			}
-    			
-        		break;
-		}
 		
+		txtEventInfo.append("----------------------\n");
 		displayEventInfo(e);
+		if(Platform.isMac()) {
+			String script="tell application \"System Events\"\n" +
+					"\tname of application processes whose frontmost is true\n" +
+					"end";
+			ScriptEngine appleScript = new ScriptEngineManager().getEngineByName("AppleScriptEngine");
+		
+			ArrayList stockList = null;
+			
+			try {
+				stockList = (ArrayList) appleScript.eval(script);
+			} catch (ScriptException e1) {
+					// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+			txtEventInfo.append("-" + stockList.toString());
+		}
+		txtEventInfo.append("\n");
+		txtEventInfo.append("*********\n");
 		
 	}
 	
