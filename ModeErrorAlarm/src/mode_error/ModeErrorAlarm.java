@@ -142,23 +142,8 @@ public class ModeErrorAlarm extends JFrame implements WindowListener, NativeKeyL
 		
 		txtEventInfo.append("----------------------\n");
 		displayEventInfo(e);
-		if(Platform.isMac()) {
-			String script="tell application \"System Events\"\n" +
-					"\tname of application processes whose frontmost is true\n" +
-					"end";
-			ScriptEngine appleScript = new ScriptEngineManager().getEngineByName("AppleScriptEngine");
-		
-			ArrayList stockList = null;
-			
-			try {
-				stockList = (ArrayList) appleScript.eval(script);
-			} catch (ScriptException e1) {
-					// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-
-			txtEventInfo.append("-" + stockList.toString());
-		}
+		txtEventInfo.append("-" + ModeErrorUtil.nowlanguage());
+		txtEventInfo.append("-" + ModeErrorUtil.nowTopProcess());
 		txtEventInfo.append("\n");
 		txtEventInfo.append("*********\n");
 		

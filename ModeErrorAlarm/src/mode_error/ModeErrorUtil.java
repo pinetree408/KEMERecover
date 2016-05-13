@@ -12,6 +12,22 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+
+import com.sun.jna.Native;
+import com.sun.jna.Platform;
+import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.Kernel32;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
+import com.sun.jna.platform.win32.WinDef.HWND;
+import com.sun.jna.platform.win32.WinNT;
+import com.sun.jna.ptr.IntByReference;
+import com.sun.jna.win32.StdCallLibrary;
+import com.sun.jna.win32.W32APIOptions;
+
 
 public class ModeErrorUtil {
 	
@@ -159,14 +175,93 @@ public class ModeErrorUtil {
 		return listString;
 	}
 	
+	public interface Psapi extends StdCallLibrary {
+	    Psapi INSTANCE = (Psapi) Native.loadLibrary("Psapi", Psapi.class);
+
+	    WinDef.DWORD GetModuleBaseNameW(Pointer hProcess, Pointer hModule, byte[] lpBaseName, int nSize);
+	}
+
+	public interface MyUser32 extends User32 {
+	    MyUser32 INSTANCE = (MyUser32)Native.loadLibrary("user32", MyUser32.class, W32APIOptions.DEFAULT_OPTIONS);
+	    int SendMessage(HWND hWnd, int Msg, int wParam, int lParam);
+	}
+	
+	public interface Ime extends User32 {
+	    Ime INSTANCE = (Ime)Native.loadLibrary("imm32.dll", Ime.class);
+	    HWND ImmGetDefaultIMEWnd(HWND hWnd);
+	}
+	
 	public static String nowlanguage(){
 		
-		//For mac
-		InputContext input = InputContext.getInstance();
+		String ret = new String();
 		
-		String inputLanguage = input.getLocale().getLanguage();
+		if (Platform.isWindows()) {
+			
+			User32 user32 = User32.INSTANCE;
+			WinDef.HWND windowHandle=user32.GetForegroundWindow();
+		    Ime ime = Ime.INSTANCE;
+		    WinDef.HWND hwndIme = ime.ImmGetDefaultIMEWnd(windowHandle);
+		    int test = MyUser32.INSTANCE.SendMessage(hwndIme, 0x0283, 0x05, 0);
+			
+		    if (test == 0){
+		    	ret = "en";
+		    }else{
+		    	ret = "ko";
+		    }
+		    
+		}else if (Platform.isMac()){
+			
+			InputContext test = InputContext.getInstance();
+			
+			ret = test.getLocale().getLanguage();
+			
+		}
 		
-		return inputLanguage;
+		return ret;
+	}
+	
+	public static String nowTopProcess() {
+		
+		String processName = null;
+		
+		if (Platform.isWindows()) {
+			
+			final int PROCESS_VM_READ=0x0010;
+		    final int PROCESS_QUERY_INFORMATION=0x0400;
+		    final User32 user32 = User32.INSTANCE;
+		    final Kernel32 kernel32=Kernel32.INSTANCE;
+		    final Psapi psapi = Psapi.INSTANCE;
+		    WinDef.HWND windowHandle=user32.GetForegroundWindow();
+		    IntByReference pid= new IntByReference();
+		    user32.GetWindowThreadProcessId(windowHandle, pid);
+		    WinNT.HANDLE processHandle=kernel32.OpenProcess(PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, true, pid.getValue());
+		    
+		    byte[] filename = new byte[512];
+		    psapi.GetModuleBaseNameW(processHandle.getPointer(), Pointer.NULL, filename, filename.length);
+		    
+		    processName = new String(filename);
+		    
+		} else 
+		if(Platform.isMac()) {
+			String script="tell application \"System Events\"\n" +
+					"\tname of application processes whose frontmost is true\n" +
+					"end";
+			ScriptEngine appleScript = new ScriptEngineManager().getEngineByName("AppleScriptEngine");
+		
+			ArrayList stockList = null;
+			
+			try {
+				stockList = (ArrayList) appleScript.eval(script);
+			} catch (ScriptException e1) {
+					// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+			processName = stockList.toString();
+
+		}
+		
+		return processName;
 	}
 	
 	public static int getKeyCode(String input){
