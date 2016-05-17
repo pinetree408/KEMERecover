@@ -16,6 +16,8 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import org.jnativehook.keyboard.NativeKeyEvent;
+
 import com.sun.jna.Native;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
@@ -27,16 +29,19 @@ import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.win32.StdCallLibrary;
 import com.sun.jna.win32.W32APIOptions;
 
+import java.lang.reflect.Field; 
+import java.lang.reflect.Modifier; 
+
 
 public class ModeErrorUtil {
 	
-	public static boolean isWordInDic(ArrayList<String> arrayString) {
+	public static boolean isWordInDic(ArrayList<Integer> arrayString) {
 		
 		boolean isIn = false;
 		String dict;
 		String s;
 	    
-	    String compared = ModeErrorUtil.joinArrayList(arrayString).toLowerCase();
+	    String compared = ModeErrorUtil.joinArrayList(arrayString).replace(".", "");
 	    
 	    if (ModeErrorUtil.nowlanguage() == "ko") {
 	    	dict = "/dict/wordsEn.txt";
@@ -60,6 +65,14 @@ public class ModeErrorUtil {
 		}
 		
 		if (isIn){
+			return true;
+		}
+		return false;
+	}
+	
+	public static boolean isKeyShift(int KeyCode) {
+		
+		if ((KeyCode == 42) || (KeyCode == 54)) {
 			return true;
 		}
 		return false;
@@ -154,13 +167,22 @@ public class ModeErrorUtil {
 		return sb.toString();
 	}
 	
-	public static String joinArrayList(ArrayList<String> arrayString) {
+	public static String joinArrayList(ArrayList<Integer> arrayString) {
 
 	    String listString = "";
+	    String regex = "[A-Za-z]";
+	    
+	    for (int i = 0; i < arrayString.size(); i++) {
+	    	String temp = NativeKeyEvent.getKeyText(arrayString.get(i));
 
-	    for (String temp : arrayString)
-	    {
-	        listString += temp;
+			if (temp.matches(regex)){
+				if (!((i > 0) && NativeKeyEvent.getKeyText(arrayString.get(i-1)).contains("Shift"))) {
+					temp = temp.toLowerCase();
+				}
+				listString += temp;
+			} else if (!temp.contains("Shift")){
+				listString += ".";
+			}
 	    }
 
 		return listString;
@@ -225,7 +247,7 @@ public class ModeErrorUtil {
 
 		}else if (Platform.isMac()){
 			
-			InputContext test = InputContext.getInstance();
+			//InputContext test = InputContext.getInstance();
 			
 		}
 	}
@@ -258,10 +280,10 @@ public class ModeErrorUtil {
 					"end";
 			ScriptEngine appleScript = new ScriptEngineManager().getEngineByName("AppleScriptEngine");
 		
-			ArrayList stockList = null;
+			ArrayList<String> stockList = null;
 			
 			try {
-				stockList = (ArrayList) appleScript.eval(script);
+				stockList = (ArrayList<String>) appleScript.eval(script);
 			} catch (ScriptException e1) {
 					// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -274,90 +296,36 @@ public class ModeErrorUtil {
 		return processName;
 	}
 	
-	public static int getKeyCode(String input){
-		int result = 65535;
+	public static int getKeyCode(Integer input) throws Exception{
+
+		// Populate all the virtual key codes from NativeKeyEvent 
+		HashMap<Integer, String> nativeKeyCodes = new HashMap<Integer, String>(); 
+		Field nativeFields[] = NativeKeyEvent.class.getDeclaredFields(); 
+		for (int i = 0; i < nativeFields.length; i++) { 
+			String name = nativeFields[i].getName();
+			int mod = nativeFields[i].getModifiers();
+			if (Modifier.isPublic(mod) && Modifier.isStatic(mod) && Modifier.isFinal(mod) && name.startsWith("VC_")) {
+				nativeKeyCodes.put(nativeFields[i].getInt(null), name); 
+			} 
+		}
+	 
+		// Populate all the virtual key codes from KeyEvent 
+		HashMap<String, Integer> javaKeyCodes = new HashMap<String, Integer>(); 
+		Field javaFields[] = KeyEvent.class.getDeclaredFields(); 
+		for (int i = 0; i < javaFields.length; i++) { 
+			String name = javaFields[i].getName(); 
+			int mod = javaFields[i].getModifiers();
+			if (Modifier.isPublic(mod) && Modifier.isStatic(mod) && Modifier.isFinal(mod) && name.startsWith("VK_")) {
+				javaKeyCodes.put(name, javaFields[i].getInt(null)); 
+			} 
+		}
 		
-	    switch (input) {
-			case "A":
-				result = KeyEvent.VK_A;
-				break;
-			case "B":
-				result = KeyEvent.VK_B;
-				break;
-    		case "C":
-    			result = KeyEvent.VK_C;
-    			break;
-        	case "D":
-        		result = KeyEvent.VK_D;
-        		break;	    
-	        case "E":
-	        	result = KeyEvent.VK_E;
-	        	break;
-	        case "F":
-	        	result = KeyEvent.VK_F;
-	        	break;
-	        case "G":
-	        	result = KeyEvent.VK_G;
-	        	break;
-	        case "H":
-	        	result = KeyEvent.VK_H;
-	        	break;
-	        case "I":
-	        	result = KeyEvent.VK_I;
-	        	break;
-	        case "J":
-	        	result = KeyEvent.VK_J;
-	        	break;
-	        case "K":
-	        	result = KeyEvent.VK_K;
-	        	break;
-	        case "L":
-	        	result = KeyEvent.VK_L;
-	        	break;
-	        case "M":
-	        	result = KeyEvent.VK_M;
-	        	break;
-	        case "N":
-	        	result = KeyEvent.VK_N;
-	        	break;
-	        case "O":
-	        	result = KeyEvent.VK_O;
-	        	break;
-	        case "P":
-	        	result = KeyEvent.VK_P;
-	        	break;
-	        case "Q":
-	        	result = KeyEvent.VK_Q;
-	        	break;
-	        case "R":
-	        	result = KeyEvent.VK_R;
-	        	break;
-	        case "S":
-	        	result = KeyEvent.VK_S;
-	        	break;
-	        case "T":
-	        	result = KeyEvent.VK_T;
-	        	break;
-	        case "U":
-	        	result = KeyEvent.VK_U;
-	        	break;
-	        case "V":
-	        	result = KeyEvent.VK_V;
-	        	break;
-	        case "W":
-	        	result = KeyEvent.VK_W;
-	        	break;
-	        case "X":
-	        	result = KeyEvent.VK_X;
-	        	break;
-	        case "Y":
-	        	result = KeyEvent.VK_Y;
-	        	break;
-	        case "Z":
-	        	result = KeyEvent.VK_Z;
-	        	break;
-	    }
-	    return result;	
+		String nativeKey = nativeKeyCodes.get(input);
+		String[] nativeKeyArray = nativeKey.split("_");
+		String finalNativeKey = "VK_" + nativeKeyArray[1];
+
+		int result = javaKeyCodes.get(finalNativeKey);
+	    return result;
 	}
 
 }

@@ -20,7 +20,6 @@ import javax.swing.text.BadLocationException;
 
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
-import org.jnativehook.NativeInputEvent;
 import org.jnativehook.SwingDispatchService;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
@@ -38,8 +37,8 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 
 	private Robot robot;
 	
-	private ArrayList<String> restoreString;
-	private ArrayList<String> tmpString;
+	private ArrayList<Integer> restoreString;
+	private ArrayList<Integer> tmpString;
 	private String state;
 	private int backCount;
 
@@ -47,7 +46,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		setTitle("ModeError Alarm");
 		setLayout(new BorderLayout());
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		setSize(200, 100);
+		setSize(500, 600);
 		addWindowListener(this);
 
 		Dimension frameSize = getSize();
@@ -56,8 +55,8 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		setLocation((screenSize.width - frameSize.width), 0);
 		
 		
-		restoreString = new ArrayList<String>();
-		tmpString = new ArrayList<String>();
+		restoreString = new ArrayList<Integer>();
+		tmpString = new ArrayList<Integer>();
 		state = "store";
 		backCount = 0;
 		
@@ -87,14 +86,15 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	private String realAlphabet(String paramString) {
 		String input = paramString;
 		String[] array = input.split(",");
-		String type = array[2].replace("?†ï?ùò?êòÏß? ?ïä?ùå", "NULL");
+		String type = array[2].replace("?ÔøΩÔøΩ?ÔøΩÔøΩ?ÔøΩÔøΩÔøΩ? ?ÔøΩÔøΩ?ÔøΩÔøΩ", "NULL");
 		String[] result = type.split("=");
 		
 		return result[1];
 	}
 	
-	private void displayEventInfo(final NativeInputEvent e) {
+	private void displayEventInfo(NativeKeyEvent e) {
 		txtEventInfo.append(realAlphabet(e.paramString()));
+		txtEventInfo.append("-" + String.valueOf(e.getKeyCode()));
 
 		try {
 			//Clean up the history to reduce memory consumption.
@@ -109,14 +109,17 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		}
 	}
 	
-	public void robotInput(ArrayList<String> arrayString, int backCount) {
+	public void robotInput(ArrayList<Integer> arrayString, int backCount) throws Exception {
 		
 		int restoreSize = arrayString.size();
-		int deleteSize = arrayString.size();
+		String joinedString = ModeErrorUtil.joinArrayList(arrayString);
+		int deleteSize = joinedString.length();
 		String nowLang = ModeErrorUtil.nowlanguage();
 		
+		txtEventInfo.append("-" + joinedString);
+		
 		if (nowLang.equals("en")) {
-			deleteSize = ModeErrorUtil.eTok(ModeErrorUtil.joinArrayList(arrayString).toLowerCase()).length();
+			deleteSize = ModeErrorUtil.eTok(joinedString).length();
 		}
 		
 		deleteSize = deleteSize - backCount;
@@ -127,8 +130,16 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		}
 		
 		for (int i = 0; i < restoreSize; i++) {
-			robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
-			robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i)));
+			if (ModeErrorUtil.isKeyShift(arrayString.get(i))) {
+				robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
+			} else if((i > 0) && ModeErrorUtil.isKeyShift(arrayString.get(i-1))) {
+				robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
+				robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i)));
+				robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i-1)));
+			} else{
+				robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
+				robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i)));
+			}
 		}
 	}
 
@@ -153,9 +164,14 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 			if (e.getKeyCode() == 112 && restoreString.size() != 0) {
 				
 				state = "recover";
-
+				
 				if (ModeErrorUtil.isWordInDic(restoreString) == false){
-					robotInput(restoreString, backCount);
+					try {
+						robotInput(restoreString, backCount);
+					} catch (Exception e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 				}
 
 			} else {
@@ -165,8 +181,17 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 					restoreString.clear();
 					tmpString.clear();
 				} else {
-					restoreString.add(NativeKeyEvent.getKeyText(e.getKeyCode()));
-					tmpString.add(NativeKeyEvent.getKeyText(e.getKeyCode()));
+					if (!(restoreString.size() == 0 && e.getKeyCode() == 14)) {
+						if ((e.getKeyCode() != 112) && (e.getKeyCode() != 14)) {
+							restoreString.add(e.getKeyCode());
+							tmpString.add(e.getKeyCode());
+						} else {
+							if (restoreString.size() != 0 && tmpString.size() != 0){
+								restoreString.remove(restoreString.size()-1);
+								tmpString.remove(tmpString.size()-1);
+							}
+						}
+					}
 				}
 			}
 			
@@ -176,16 +201,14 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 			
 			if (tmpString.size() == 0) {
 				tmpString.addAll(restoreString);
-			}
-			
-			if (tmpString.size() == 1){
+			} else if (tmpString.size() == 1){
 				state = "store";
 				restoreString.clear();
 				tmpString.clear();
-			}
-			
-			if (e.getKeyCode() != 14 && e.getKeyCode() != 57) {
-				tmpString.remove(tmpString.size()-1);
+			} else if (e.getKeyCode() != 14 && e.getKeyCode() != 57) {
+				if (tmpString.size() != 0){
+					tmpString.remove(tmpString.size()-1);
+				}
 			}
 			
 			break;
