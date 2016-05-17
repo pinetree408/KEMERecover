@@ -3,9 +3,9 @@ package mode_error;
 import java.awt.event.KeyEvent;
 import java.awt.im.InputContext;
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +22,6 @@ import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
-import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.win32.StdCallLibrary;
@@ -39,23 +38,15 @@ public class ModeErrorUtil {
 	    
 	    String compared = ModeErrorUtil.joinArrayList(arrayString).toLowerCase();
 	    
-	    FileReader filereader = null;
-
 	    if (ModeErrorUtil.nowlanguage() == "ko") {
-	    	dict = "dict/wordsEn.txt";
+	    	dict = "/dict/wordsEn.txt";
 	    } else {
-	    	dict = "dict/wordsKo.txt";
+	    	dict = "/dict/wordsKo.txt";
 	    	compared = ModeErrorUtil.eTok(compared);
 	    }
 	    
-	    try { 
-	    	filereader = new FileReader(dict);
-	    } 
-	    catch (FileNotFoundException e) { 
-	    	e.printStackTrace(); 
-	    } 
-	    
-	    BufferedReader in = new BufferedReader(filereader);
+	    InputStream input = ModeErrorUtil.class.getResourceAsStream(dict);
+	    BufferedReader in = new BufferedReader(new InputStreamReader(input));
 	    
 		try {
 		    while ((s = in.readLine()) != null) {
@@ -218,6 +209,25 @@ public class ModeErrorUtil {
 		}
 		
 		return ret;
+	}
+	
+	public static void changelanguage() {
+		
+		if (Platform.isWindows()) {
+			
+			User32 user32 = User32.INSTANCE;
+			WinDef.HWND windowHandle=user32.GetForegroundWindow();
+		    Ime ime = Ime.INSTANCE;
+		    WinDef.HWND hwndIme = ime.ImmGetDefaultIMEWnd(windowHandle);
+		    int test = MyUser32.INSTANCE.SendMessage(hwndIme, 0x0283, 0x05, 0);
+		    int change = test == 0 ? 1 : 0; 
+		    MyUser32.INSTANCE.SendMessage(hwndIme, 0x0283, 2, change);
+
+		}else if (Platform.isMac()){
+			
+			InputContext test = InputContext.getInstance();
+			
+		}
 	}
 	
 	public static String nowTopProcess() {
