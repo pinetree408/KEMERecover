@@ -1,4 +1,4 @@
-package mode_error;
+package mode_recover;
 
 import java.awt.event.KeyEvent;
 import java.awt.im.InputContext;

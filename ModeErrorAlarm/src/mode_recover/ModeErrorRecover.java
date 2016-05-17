@@ -1,6 +1,4 @@
-package mode_error;
-
-import mode_error.ModeErrorUtil;
+package mode_recover;
 
 import java.util.ArrayList;
 import java.awt.event.KeyEvent;
@@ -26,6 +24,8 @@ import org.jnativehook.NativeInputEvent;
 import org.jnativehook.SwingDispatchService;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
+
+import mode_recover.ModeErrorUtil;
 
 
 public class ModeErrorRecover extends JFrame implements WindowListener, NativeKeyListener {
@@ -87,7 +87,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	private String realAlphabet(String paramString) {
 		String input = paramString;
 		String[] array = input.split(",");
-		String type = array[2].replace("ì •ì˜ë˜ì§€ ì•ŠìŒ", "NULL");
+		String type = array[2].replace("? •?˜?˜ì§? ?•Š?Œ", "NULL");
 		String[] result = type.split("=");
 		
 		return result[1];
