@@ -1,14 +1,11 @@
 package mode_recover;
 
 import java.util.ArrayList;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Robot;
 import java.awt.Toolkit;
 
 import javax.swing.JFrame;
@@ -35,8 +32,6 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	/** The text area to display event info. */
 	private static JTextArea txtEventInfo;
 
-	private Robot robot;
-	
 	private ArrayList<Integer> restoreString;
 	private ArrayList<Integer> tmpString;
 	private String state;
@@ -54,18 +49,10 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		
 		setLocation((screenSize.width - frameSize.width), 0);
 		
-		
 		restoreString = new ArrayList<Integer>();
 		tmpString = new ArrayList<Integer>();
 		state = "store";
 		backCount = 0;
-		
-		try {
-			robot = new Robot();
-		} catch (AWTException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
 		txtEventInfo = new JTextArea();
 		txtEventInfo.setEditable(false);
@@ -83,17 +70,8 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		
 	}
 	
-	private String realAlphabet(String paramString) {
-		String input = paramString;
-		String[] array = input.split(",");
-		String type = array[2].replace("?��?��?���? ?��?��", "NULL");
-		String[] result = type.split("=");
-		
-		return result[1];
-	}
-	
 	private void displayEventInfo(NativeKeyEvent e) {
-		txtEventInfo.append(realAlphabet(e.paramString()));
+		txtEventInfo.append(NativeKeyEvent.getKeyText(e.getKeyCode()));
 		txtEventInfo.append("-" + String.valueOf(e.getKeyCode()));
 
 		try {
@@ -106,40 +84,6 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		}
 		catch (BadLocationException ex) {
 			txtEventInfo.setCaretPosition(txtEventInfo.getDocument().getLength());
-		}
-	}
-	
-	public void robotInput(ArrayList<Integer> arrayString, int backCount) throws Exception {
-		
-		int restoreSize = arrayString.size();
-		String joinedString = ModeErrorUtil.joinArrayList(arrayString);
-		int deleteSize = joinedString.length();
-		String nowLang = ModeErrorUtil.nowlanguage();
-		
-		txtEventInfo.append("-" + joinedString);
-		
-		if (nowLang.equals("en")) {
-			deleteSize = ModeErrorUtil.eTok(joinedString).length();
-		}
-		
-		deleteSize = deleteSize - backCount;
-		
-		for (int i = 0; i < deleteSize; i++) {
-			robot.keyPress(KeyEvent.VK_BACK_SPACE);
-			robot.keyRelease(KeyEvent.VK_BACK_SPACE);
-		}
-		
-		for (int i = 0; i < restoreSize; i++) {
-			if (ModeErrorUtil.isKeyShift(arrayString.get(i))) {
-				robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
-			} else if((i > 0) && ModeErrorUtil.isKeyShift(arrayString.get(i-1))) {
-				robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
-				robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i)));
-				robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i-1)));
-			} else{
-				robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
-				robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i)));
-			}
 		}
 	}
 
@@ -158,61 +102,67 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 				
 		switch (state){
 		
-		case "store":
-			// ko/en change => e.getKeyCode = 112;
-			// backspace => e.getKeyCode = 14
-			if (e.getKeyCode() == 112 && restoreString.size() != 0) {
+			case "store":
 				
-				state = "recover";
-				
-				if (ModeErrorUtil.isWordInDic(restoreString) == false){
-					try {
-						robotInput(restoreString, backCount);
-					} catch (Exception e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+				// ko/en change => e.getKeyCode = 112;
+				// backspace => e.getKeyCode = 14
+				if (e.getKeyCode() == 112 && restoreString.size() != 0) {
+					
+					if (ModeErrorUtil.isWordInDic(restoreString) == false){
+						
+						state = "recover";
+						
+						try {
+							ModeErrorUtil.robotInput(restoreString, backCount);
+						} catch (Exception e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+
+					} else {
+						restoreString.clear();
+						tmpString.clear();
 					}
-				}
-
-			} else {
-
-				// space => e.getKeyCode = 57
-				if (e.getKeyCode() == 57) {
-					restoreString.clear();
-					tmpString.clear();
+	
 				} else {
-					if (!(restoreString.size() == 0 && e.getKeyCode() == 14)) {
-						if ((e.getKeyCode() != 112) && (e.getKeyCode() != 14)) {
-							restoreString.add(e.getKeyCode());
-							tmpString.add(e.getKeyCode());
-						} else {
-							if (restoreString.size() != 0 && tmpString.size() != 0){
-								restoreString.remove(restoreString.size()-1);
-								tmpString.remove(tmpString.size()-1);
+	
+					// space => e.getKeyCode = 57
+					if (e.getKeyCode() == 57) {
+						restoreString.clear();
+						tmpString.clear();
+					} else {
+						if (!(restoreString.size() == 0 && e.getKeyCode() == 14)) {
+							if ((e.getKeyCode() != 112) && (e.getKeyCode() != 14)) {
+								restoreString.add(e.getKeyCode());
+								tmpString.add(e.getKeyCode());
+							} else {
+								if (restoreString.size() != 0 && tmpString.size() != 0){
+									restoreString.remove(restoreString.size()-1);
+									tmpString.remove(tmpString.size()-1);
+								}
 							}
 						}
 					}
 				}
-			}
-			
-			break;
-			
-		case "recover":
-			
-			if (tmpString.size() == 0) {
-				tmpString.addAll(restoreString);
-			} else if (tmpString.size() == 1){
-				state = "store";
-				restoreString.clear();
-				tmpString.clear();
-			} else if (e.getKeyCode() != 14 && e.getKeyCode() != 57) {
-				if (tmpString.size() != 0){
-					tmpString.remove(tmpString.size()-1);
+				
+				break;
+				
+			case "recover":
+				
+				if (tmpString.size() == 0) {
+					tmpString.addAll(restoreString);
+				} else if (tmpString.size() == 1){
+					state = "store";
+					restoreString.clear();
+					tmpString.clear();
+				} else if (e.getKeyCode() != 14 && e.getKeyCode() != 57) {
+					if (tmpString.size() != 0){
+						tmpString.remove(tmpString.size()-1);
+					}
 				}
-			}
-			
-			break;
-	}
+				
+				break;
+		}
 		
 	}
 	

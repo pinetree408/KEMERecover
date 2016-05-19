@@ -1,5 +1,7 @@
 package mode_recover;
 
+import java.awt.AWTException;
+import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.awt.im.InputContext;
 import java.io.BufferedReader;
@@ -34,6 +36,47 @@ import java.lang.reflect.Modifier;
 
 
 public class ModeErrorUtil {
+	
+	public static void robotInput(ArrayList<Integer> arrayString, int backCount) throws Exception {
+		
+		int restoreSize = arrayString.size();
+		String joinedString = ModeErrorUtil.joinArrayList(arrayString);
+		int deleteSize = joinedString.length();
+		String nowLang = ModeErrorUtil.nowlanguage();
+		
+		if (nowLang.equals("en")) {
+			deleteSize = ModeErrorUtil.eTok(joinedString).length();
+		}
+		
+		deleteSize = deleteSize - backCount;
+		
+		Robot robot = null;
+		
+		try {
+			robot = new Robot();
+		} catch (AWTException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		for (int i = 0; i < deleteSize; i++) {
+			robot.keyPress(KeyEvent.VK_BACK_SPACE);
+			robot.keyRelease(KeyEvent.VK_BACK_SPACE);
+		}
+		
+		for (int i = 0; i < restoreSize; i++) {
+			if (ModeErrorUtil.isKeyShift(arrayString.get(i))) {
+				robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
+			} else if((i > 0) && ModeErrorUtil.isKeyShift(arrayString.get(i-1))) {
+				robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
+				robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i)));
+				robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i-1)));
+			} else{
+				robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
+				robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i)));
+			}
+		}
+	}
 	
 	public static boolean isWordInDic(ArrayList<Integer> arrayString) {
 		
@@ -252,6 +295,7 @@ public class ModeErrorUtil {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static String nowTopProcess() {
 		
 		String processName = null;
