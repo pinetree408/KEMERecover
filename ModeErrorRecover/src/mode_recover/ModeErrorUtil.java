@@ -65,7 +65,7 @@ public class ModeErrorUtil {
 		}
 		
 		for (int i = 0; i < restoreSize; i++) {
-			if (ModeErrorUtil.isKeyShift(arrayString.get(i))) {
+			if ((i > 0) && ModeErrorUtil.isKeyShift(arrayString.get(i))) {
 				robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
 			} else if((i > 0) && ModeErrorUtil.isKeyShift(arrayString.get(i-1))) {
 				robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));

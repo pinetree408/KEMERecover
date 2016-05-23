@@ -89,16 +89,6 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 
 	@Override
 	public void nativeKeyPressed(NativeKeyEvent e) {
-		
-		txtEventInfo.append("----------------------\n");
-		displayEventInfo(e);
-		txtEventInfo.append("-" + state);
-		txtEventInfo.append("-" + restoreString.toString());
-		txtEventInfo.append("-" + tmpString.toString());
-		txtEventInfo.append("-" + ModeErrorUtil.nowlanguage());
-		txtEventInfo.append("-" + ModeErrorUtil.nowTopProcess());
-		txtEventInfo.append("\n");
-		txtEventInfo.append("*********\n");
 				
 		switch (state){
 		
@@ -163,6 +153,17 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 				
 				break;
 		}
+		
+		txtEventInfo.append("----------------------\n");
+		displayEventInfo(e);
+		txtEventInfo.append("-" + state);
+		txtEventInfo.append("-" +String.valueOf(ModeErrorUtil.isWordInDic(restoreString)));
+		txtEventInfo.append("-" + restoreString.toString());
+		txtEventInfo.append("-" + tmpString.toString());
+		txtEventInfo.append("-" + ModeErrorUtil.nowlanguage());
+		txtEventInfo.append("-" + ModeErrorUtil.nowTopProcess());
+		txtEventInfo.append("\n");
+		txtEventInfo.append("*********\n");
 		
 	}
 	
