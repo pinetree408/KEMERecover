@@ -187,7 +187,14 @@ public class ModeErrorUtil {
 		Pattern p = Pattern.compile(regex);
 		Matcher m = p.matcher(english);
 		StringBuffer sb = new StringBuffer();
+		
+		int initial = english.length();
+		
+		System.out.println("start:" + initial);
+		
 		while (m.find()) {
+			
+			initial = initial - m.group().length();
 			
 			int charCode = enH.indexOf((m.group().charAt(0))) * 588;
 			
@@ -207,7 +214,114 @@ public class ModeErrorUtil {
 		}
 		m.appendTail(sb);
 
+		System.out.println("final:" + initial);
+		
 		return sb.toString();
+	}
+	
+	public static boolean isCompleteKorean(ArrayList<Integer> arrayString) {
+		
+	    String english = ModeErrorUtil.joinArrayList(arrayString).replace(".", "");
+	    
+	    if (ModeErrorUtil.nowlanguage() == "ko") {
+	    	return false;
+	    }
+		
+		String enH = "rRseEfaqQtTdwWczxvg";
+		String regH = "[" + enH + "]";
+		
+		Map<String, Integer> enB = new HashMap<String, Integer>();
+		enB.put("k", 0);
+		enB.put("o", 1);
+		enB.put("i", 2);
+		enB.put("O", 3);
+		enB.put("j", 4);
+		enB.put("p", 5);
+		enB.put("u", 6);
+		enB.put("P", 7);
+		enB.put("h", 8);
+		enB.put("hk", 9);
+		enB.put("ho", 10);
+		enB.put("hl", 11);
+		enB.put("y", 12);
+		enB.put("n", 13);
+		enB.put("nj", 14);
+		enB.put("np", 15);
+		enB.put("nl", 16);
+		enB.put("b", 17);
+		enB.put("m", 18);
+		enB.put("ml", 19);
+		enB.put("l", 20);
+		String regB = "hk|ho|hl|nj|np|nl|ml|k|o|i|O|j|p|u|P|h|y|n|b|m|l";
+		
+		Map<String, Integer> enF = new HashMap<String, Integer>();
+		enF.put("", 0);
+		enF.put("r", 1);
+		enF.put("R", 2);
+		enF.put("rt", 3);
+		enF.put("s", 4);
+		enF.put("sw", 5);
+		enF.put("sg", 6);
+		enF.put("e", 7);
+		enF.put("f", 8);
+		enF.put("fr", 9);
+		enF.put("fa", 10);
+		enF.put("fq", 11);
+		enF.put("ft", 12);
+		enF.put("fx", 13);
+		enF.put("fv", 14);
+		enF.put("fg", 15);
+		enF.put("a", 16);
+		enF.put("q", 17);
+		enF.put("qt", 18);
+		enF.put("t", 19);
+		enF.put("T", 20);
+		enF.put("d", 21);
+		enF.put("w", 22);
+		enF.put("c", 23);
+		enF.put("z", 24);
+		enF.put("x", 25);
+		enF.put("v", 26);
+		enF.put("g", 27);
+
+	    String regF = "rt|sw|sg|fr|fa|fq|ft|fx|fv|fg|qt|r|R|s|e|f|a|q|t|T|d|w|c|z|x|v|g|";
+		
+		String regex = "("+regH+")("+regB+")(("+regF+")(?=("+regH+")("+regB+"))|("+regF+"))";
+		
+		Pattern p = Pattern.compile(regex);
+		Matcher m = p.matcher(english);
+		StringBuffer sb = new StringBuffer();
+		
+		int initialLength = english.length();
+		int finalLength = 0;
+		
+		while (m.find()) {
+			
+			finalLength = finalLength + m.group().length();
+			
+			int charCode = enH.indexOf((m.group().charAt(0))) * 588;
+			
+			if (m.group().length() > 2) {
+				if (enF.get(String.valueOf(m.group().charAt(2))) != null) {
+					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28 + enF.get(String.valueOf(m.group().charAt(2)));
+				} else {
+					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))+String.valueOf(m.group().charAt(2))) * 28;
+				}
+			} else {
+				charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28;
+			}
+			
+			charCode = charCode + 44032;
+			
+		    m.appendReplacement(sb, Character.toString((char) charCode));
+		}
+		m.appendTail(sb);
+		
+		if ((initialLength - finalLength) == 0) {
+			return true;
+		}
+		
+		return false;
 	}
 	
 	public static String joinArrayList(ArrayList<Integer> arrayString) {

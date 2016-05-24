@@ -97,8 +97,8 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 				// ko/en change => e.getKeyCode = 112;
 				// backspace => e.getKeyCode = 14
 				if (e.getKeyCode() == 112 && restoreString.size() != 0) {
-					
-					if (ModeErrorUtil.isWordInDic(restoreString) == false){
+								
+					if (ModeErrorUtil.isCompleteKorean(restoreString) == false && ModeErrorUtil.isWordInDic(restoreString) == false){
 						
 						state = "recover";
 						
@@ -157,7 +157,6 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		txtEventInfo.append("----------------------\n");
 		displayEventInfo(e);
 		txtEventInfo.append("-" + state);
-		txtEventInfo.append("-" +String.valueOf(ModeErrorUtil.isWordInDic(restoreString)));
 		txtEventInfo.append("-" + restoreString.toString());
 		txtEventInfo.append("-" + tmpString.toString());
 		txtEventInfo.append("-" + ModeErrorUtil.nowlanguage());
