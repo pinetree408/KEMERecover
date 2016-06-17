@@ -5,11 +5,16 @@ import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.awt.im.InputContext;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -59,22 +64,27 @@ public class ModeErrorUtil {
 			e.printStackTrace();
 		}
 		
+		robot.keyPress(KeyEvent.KEY_LOCATION_RIGHT);
+		robot.keyPress(KeyEvent.VK_META);
+		robot.keyPress(KeyEvent.VK_SPACE);
+		robot.keyRelease(KeyEvent.VK_META);
+		robot.keyRelease(KeyEvent.KEY_LOCATION_RIGHT);
+		robot.keyRelease(KeyEvent.VK_SPACE);
+		
+		while(true) {
+			if(!nowLang.equals(ModeErrorUtil.nowlanguage())) {
+				break;
+			}
+		}
+		
 		for (int i = 0; i < deleteSize; i++) {
 			robot.keyPress(KeyEvent.VK_BACK_SPACE);
 			robot.keyRelease(KeyEvent.VK_BACK_SPACE);
 		}
 		
 		for (int i = 0; i < restoreSize; i++) {
-			if ((i > 0) && ModeErrorUtil.isKeyShift(arrayString.get(i))) {
-				robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
-			} else if((i > 0) && ModeErrorUtil.isKeyShift(arrayString.get(i-1))) {
-				robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
-				robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i)));
-				robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i-1)));
-			} else{
-				robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
-				robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i)));
-			}
+			robot.keyPress(ModeErrorUtil.getKeyCode(arrayString.get(i)));
+			robot.keyRelease(ModeErrorUtil.getKeyCode(arrayString.get(i)));
 		}
 	}
 	
@@ -484,6 +494,42 @@ public class ModeErrorUtil {
 
 		int result = javaKeyCodes.get(finalNativeKey);
 	    return result;
+	}
+	
+	public static class Logger {
+		
+		private File logFile;
+		
+		public Logger() {
+			
+		}
+		
+		public Logger(String fileName) {
+			logFile = new File(fileName);
+		}
+		
+		public void log(NativeKeyEvent e) {
+			
+			Date d = new Date(e.getWhen());
+			SimpleDateFormat dateformat = new SimpleDateFormat("EEE MMM d HH:mm:ss:SSS z yyyy", Locale.KOREA);
+			String date = dateformat.format(d);
+			
+			String logString =
+				date +
+				"-" + nowlanguage() + 
+				"-" + nowTopProcess() +
+				"-" + NativeKeyEvent.getKeyText(e.getKeyCode()) +
+				"\r\n";			
+
+			try {
+				FileWriter fw = new FileWriter(this.logFile, true);
+				fw.write(logString);
+				fw.close();
+			} catch (IOException exception) {
+				// TODO Auto-generated catch block
+				exception.printStackTrace();
+			}
+		}
 	}
 
 }

@@ -21,6 +21,7 @@ import org.jnativehook.SwingDispatchService;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
+import mode_recover.ModeErrorUtil.Logger;
 import mode_recover.ModeErrorUtil;
 
 
@@ -32,6 +33,9 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	/** The text area to display event info. */
 	private static JTextArea txtEventInfo;
 
+	/** buffer writer to save log */
+	private static Logger logger;
+	
 	private ArrayList<Integer> restoreString;
 	private ArrayList<Integer> tmpString;
 	private String state;
@@ -163,6 +167,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		txtEventInfo.append("-" + ModeErrorUtil.nowTopProcess());
 		txtEventInfo.append("\n");
 		txtEventInfo.append("*********\n");
+		logger.log(e);
 		
 	}
 	
@@ -190,6 +195,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	 * @param args unused.
 	 */
 	public static void main(String[] args) {
+		logger = new Logger("out.txt");
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				new ModeErrorRecover();
