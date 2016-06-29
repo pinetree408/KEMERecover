@@ -416,8 +416,7 @@ public class ModeErrorUtil {
 		    
 		    processName = new String(filename);
 		    
-		} else 
-		if(Platform.isMac()) {
+		} else if(Platform.isMac()) {
 			String script="tell application \"System Events\"\n" +
 					"\tname of application processes whose frontmost is true\n" +
 					"end";
@@ -491,10 +490,10 @@ public class ModeErrorUtil {
 			
 			String logString =
 				date +
+				"-" + NativeKeyEvent.getKeyText(e.getKeyCode()) +
 				"-" + nowlanguage() + 
 				"-" + nowTopProcess() +
-				"-" + NativeKeyEvent.getKeyText(e.getKeyCode()) +
-				"\r\n";			
+				"\r\n";
 
 			try {
 				FileWriter fw = new FileWriter(this.logFile, true);
