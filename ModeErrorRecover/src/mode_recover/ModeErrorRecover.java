@@ -102,7 +102,9 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 				// backspace => e.getKeyCode = 14
 				if (e.getKeyCode() == 112 && restoreString.size() != 0) {
 								
-					if (ModeErrorUtil.isCompleteKorean(restoreString) == false && ModeErrorUtil.isWordInDic(restoreString) == false){
+					// if (ModeErrorUtil.isWordInDic(restoreString) == false){
+					if ((ModeErrorUtil.isCompleteKorean(restoreString) == true) && (ModeErrorUtil.nowlanguage() == "ko")
+							|| (ModeErrorUtil.isCompleteKorean(restoreString) == false) && (ModeErrorUtil.nowlanguage() == "en")){
 						
 						state = "recover";
 						
