@@ -118,6 +118,28 @@ public class ModeErrorUtil {
 		return false;
 	}
 	
+	public static double pme(int a, int b) {
+		Map<Integer, Double> pme = new HashMap<Integer, Double>();
+		pme.put(20, 60.28);
+		pme.put(22, 39.72);
+		
+		int key = a * 10 + b;
+		double result = pme.get(key);
+		
+		return result;
+	}
+	
+	public static double pmk(int a, int b) {
+		Map<Integer, Double> pmk = new HashMap<Integer, Double>();
+		pmk.put(20, 60.28);
+		pmk.put(22, 39.72);
+		
+		int key = a * 10 + b;
+		double result = pmk.get(key);
+		
+		return result;
+	}
+	
 	public static String eTok(String english) {
 		
 		String enH = "rRseEfaqQtTdwWczxvg";
