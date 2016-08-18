@@ -120,8 +120,69 @@ public class ModeErrorUtil {
 	
 	public static double pme(int a, int b) {
 		Map<Integer, Double> pme = new HashMap<Integer, Double>();
+		
 		pme.put(20, 60.28);
 		pme.put(22, 39.72);
+		
+		pme.put(30, 55.64);
+		pme.put(32, 12.26);
+		pme.put(33, 32.1);
+		
+		pme.put(40, 60.74);
+		pme.put(42, 16.11);
+		pme.put(43, 11.45);
+		pme.put(44, 11.69);
+		
+		pme.put(50, 62.56);
+		pme.put(52, 17.75);
+		pme.put(53, 8.24);
+		pme.put(54, 3.44);
+		pme.put(55, 8.02);
+		
+		pme.put(60, 67.77);
+		pme.put(62, 14.4);
+		pme.put(63, 7.18);
+		pme.put(64, 3.29);
+		pme.put(65, 4.43);
+		pme.put(66, 2.93);
+		
+		pme.put(70, 66.63);
+		pme.put(72, 15.42);
+		pme.put(73, 7.38);
+		pme.put(74, 3.43);
+		pme.put(75, 3.27);
+		pme.put(76, 66.63);
+		pme.put(77, 66.63);
+		
+		pme.put(80, 66.63);
+		pme.put(82, 16.68);
+		pme.put(83, 7.98);
+		pme.put(84, 2.45);
+		pme.put(85, 2.68);
+		pme.put(86, 1.04);
+		pme.put(87, 1.25);
+		pme.put(88, 1.57);
+		
+		pme.put(90, 64.72);
+		pme.put(92, 18.1);
+		pme.put(93, 7.98);
+		pme.put(94, 2.35);
+		pme.put(95, 2.54);
+		pme.put(96, 0.96);
+		pme.put(97, 1.12);
+		pme.put(98, 1.4);
+		pme.put(99, 0.82);
+		
+		pme.put(100, 63.78);
+		pme.put(102, 18.17);
+		pme.put(103, 7.62);
+		pme.put(104, 2.34);
+		pme.put(105, 3.6);
+		pme.put(106, 0.94);
+		pme.put(107, 0.53);
+		pme.put(108, 2.03);
+		pme.put(109, 0.24);
+		pme.put(110, 0.77);
 		
 		int key = a * 10 + b;
 		double result = pme.get(key);
@@ -131,8 +192,69 @@ public class ModeErrorUtil {
 	
 	public static double pmk(int a, int b) {
 		Map<Integer, Double> pmk = new HashMap<Integer, Double>();
-		pmk.put(20, 60.28);
-		pmk.put(22, 39.72);
+		
+		pmk.put(20, 0.0);
+		pmk.put(22, 100.0);
+		
+		pmk.put(30, 0.0);
+		pmk.put(32, 0.45);
+		pmk.put(33, 99.55);
+		
+		pmk.put(40, 0.0);
+		pmk.put(42, 0.0);
+		pmk.put(43, 43.69);
+		pmk.put(44, 56.31);
+		
+		pmk.put(50, 0.0);
+		pmk.put(52, 0.0);
+		pmk.put(53, 0.0);
+		pmk.put(54, 2.91);
+		pmk.put(55, 97.09);
+		
+		pmk.put(60, 0.0);
+		pmk.put(62, 0.0);
+		pmk.put(63, 0.0);
+		pmk.put(64, 0.0);
+		pmk.put(65, 15.98);
+		pmk.put(66, 84.02);
+		
+		pmk.put(70, 0.0);
+		pmk.put(72, 0.0);
+		pmk.put(73, 0.0);
+		pmk.put(74, 0.0);
+		pmk.put(75, 0.0);
+		pmk.put(76, 24.84);
+		pmk.put(77, 75.16);
+		
+		pmk.put(80, 0.0);
+		pmk.put(82, 0.0);
+		pmk.put(83, 0.0);
+		pmk.put(84, 0.0);
+		pmk.put(85, 0.0);
+		pmk.put(86, 0.0);
+		pmk.put(87, 7.85);
+		pmk.put(88, 92.15);
+		
+		pmk.put(90, 0.0);
+		pmk.put(92, 0.0);
+		pmk.put(93, 0.0);
+		pmk.put(94, 0.0);
+		pmk.put(95, 0.0);
+		pmk.put(96, 0.0);
+		pmk.put(97, 0.0);
+		pmk.put(98, 14.83);
+		pmk.put(99, 85.17);
+		
+		pmk.put(100, 0.0);
+		pmk.put(102, 0.0);
+		pmk.put(103, 0.0);
+		pmk.put(104, 0.0);
+		pmk.put(105, 0.0);
+		pmk.put(106, 0.0);
+		pmk.put(107, 0.0);
+		pmk.put(108, 0.0);
+		pmk.put(109, 17.04);
+		pmk.put(110, 82.96);
 		
 		int key = a * 10 + b;
 		double result = pmk.get(key);
@@ -329,6 +451,107 @@ public class ModeErrorUtil {
 		}
 		
 		return false;
+	}
+	
+	public static String realLanguage(ArrayList<Integer> arrayString) {
+		
+	    String english = ModeErrorUtil.joinArrayList(arrayString).replace(".", "");
+		
+		String enH = "rRseEfaqQtTdwWczxvg";
+		String regH = "[" + enH + "]";
+		
+		Map<String, Integer> enB = new HashMap<String, Integer>();
+		enB.put("k", 0);
+		enB.put("o", 1);
+		enB.put("i", 2);
+		enB.put("O", 3);
+		enB.put("j", 4);
+		enB.put("p", 5);
+		enB.put("u", 6);
+		enB.put("P", 7);
+		enB.put("h", 8);
+		enB.put("hk", 9);
+		enB.put("ho", 10);
+		enB.put("hl", 11);
+		enB.put("y", 12);
+		enB.put("n", 13);
+		enB.put("nj", 14);
+		enB.put("np", 15);
+		enB.put("nl", 16);
+		enB.put("b", 17);
+		enB.put("m", 18);
+		enB.put("ml", 19);
+		enB.put("l", 20);
+		String regB = "hk|ho|hl|nj|np|nl|ml|k|o|i|O|j|p|u|P|h|y|n|b|m|l";
+		
+		Map<String, Integer> enF = new HashMap<String, Integer>();
+		enF.put("", 0);
+		enF.put("r", 1);
+		enF.put("R", 2);
+		enF.put("rt", 3);
+		enF.put("s", 4);
+		enF.put("sw", 5);
+		enF.put("sg", 6);
+		enF.put("e", 7);
+		enF.put("f", 8);
+		enF.put("fr", 9);
+		enF.put("fa", 10);
+		enF.put("fq", 11);
+		enF.put("ft", 12);
+		enF.put("fx", 13);
+		enF.put("fv", 14);
+		enF.put("fg", 15);
+		enF.put("a", 16);
+		enF.put("q", 17);
+		enF.put("qt", 18);
+		enF.put("t", 19);
+		enF.put("T", 20);
+		enF.put("d", 21);
+		enF.put("w", 22);
+		enF.put("c", 23);
+		enF.put("z", 24);
+		enF.put("x", 25);
+		enF.put("v", 26);
+		enF.put("g", 27);
+
+	    String regF = "rt|sw|sg|fr|fa|fq|ft|fx|fv|fg|qt|r|R|s|e|f|a|q|t|T|d|w|c|z|x|v|g|";
+		
+		String regex = "("+regH+")("+regB+")(("+regF+")(?=("+regH+")("+regB+"))|("+regF+"))";
+		
+		Pattern p = Pattern.compile(regex);
+		Matcher m = p.matcher(english);
+		StringBuffer sb = new StringBuffer();
+		
+		int initialLength = english.length();
+		int finalLength = 0;
+
+		while (m.find()) {
+			
+			finalLength = finalLength + m.group().length();
+
+			int charCode = enH.indexOf((m.group().charAt(0))) * 588;
+			
+			if (m.group().length() > 2) {
+				if (enF.get(String.valueOf(m.group().charAt(2))) != null) {
+					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28 + enF.get(String.valueOf(m.group().charAt(2)));
+				} else {
+					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))+String.valueOf(m.group().charAt(2))) * 28;
+				}
+			} else {
+				charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28;
+			}
+			
+			charCode = charCode + 44032;
+			
+		    m.appendReplacement(sb, Character.toString((char) charCode));
+		}
+		m.appendTail(sb);
+		
+		if (ModeErrorUtil.pme(initialLength, finalLength) > ModeErrorUtil.pmk(initialLength, finalLength)) {
+			return "en";
+		}
+		
+		return "ko";
 	}
 	
 	public static String joinArrayList(ArrayList<Integer> arrayString) {
