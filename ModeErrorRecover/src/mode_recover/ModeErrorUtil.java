@@ -646,20 +646,33 @@ public class ModeErrorUtil {
 		
 		if (Platform.isWindows()) {
 			
-			final int PROCESS_VM_READ=0x0010;
-		    final int PROCESS_QUERY_INFORMATION=0x0400;
+			final int PROCESS_VM_READ = 0x0010;
+		    final int PROCESS_QUERY_INFORMATION = 0x0400;
 		    final User32 user32 = User32.INSTANCE;
-		    final Kernel32 kernel32=Kernel32.INSTANCE;
+		    final Kernel32 kernel32 = Kernel32.INSTANCE;
 		    final Psapi psapi = Psapi.INSTANCE;
-		    WinDef.HWND windowHandle=user32.GetForegroundWindow();
-		    IntByReference pid= new IntByReference();
+		    WinDef.HWND windowHandle = user32.GetForegroundWindow();
+		    IntByReference pid = new IntByReference();
 		    user32.GetWindowThreadProcessId(windowHandle, pid);
-		    WinNT.HANDLE processHandle=kernel32.OpenProcess(PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, true, pid.getValue());
+		    WinNT.HANDLE processHandle = kernel32.OpenProcess(PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, true, pid.getValue());
 		    
 		    byte[] filename = new byte[512];
-		    psapi.GetModuleBaseNameW(processHandle.getPointer(), Pointer.NULL, filename, filename.length);
 		    
-		    processName = new String(filename);
+		    try {
+		    	psapi.GetModuleBaseNameW(processHandle.getPointer(), Pointer.NULL, filename, filename.length);
+		    } catch(NullPointerException e) {
+		    	e.getStackTrace();
+		    }
+		    
+		    String temp = "";
+		    
+		    for (int i = 0; i < 32; i++) {
+		    	if (filename[i] != 0x00) {
+		            temp += (char)filename[i];
+		    	} 
+		    }
+		    
+		    processName = temp;
 		    
 		} else if(Platform.isMac()) {
 			String script="tell application \"System Events\"\n" +
@@ -679,7 +692,7 @@ public class ModeErrorUtil {
 			processName = stockList.toString();
 
 		}
-		
+        
 		return processName;
 	}
 	
