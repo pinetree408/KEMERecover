@@ -36,9 +36,9 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	/** buffer writer to save log */
 	private static Logger logger;
 	
-	private ArrayList<Integer> restoreString;
-	private ArrayList<Integer> tmpString;
-	private String state;
+	private static ArrayList<Integer> restoreString;
+	private static ArrayList<Integer> tmpString;
+	private static String state;
 	private int backCount;
 	private static int limitNumber;
 
@@ -102,6 +102,8 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 			
 				case "store":
 					
+					limitNumber += 1;
+					
 					// ko/en change => e.getKeyCode = 112;
 					// backspace => e.getKeyCode = 14
 					if (e.getKeyCode() == 112 && restoreString.size() != 0) {
@@ -164,7 +166,6 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 					break;
 			}
 			
-			limitNumber += 1;
 		}
 		
 		txtEventInfo.append("----------------------\n");
@@ -222,6 +223,9 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 				topProcess = nowTopProcess;
 				
 				limitNumber = 0;
+				state = "store";
+				restoreString.clear();
+				tmpString.clear();
 				
 			}
 		}
