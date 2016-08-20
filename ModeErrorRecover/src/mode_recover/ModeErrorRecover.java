@@ -40,6 +40,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	private ArrayList<Integer> tmpString;
 	private String state;
 	private int backCount;
+	private static int limitNumber;
 
 	public ModeErrorRecover() {
 		setTitle("ModeError Alarm");
@@ -57,6 +58,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		tmpString = new ArrayList<Integer>();
 		state = "store";
 		backCount = 0;
+		limitNumber = 0;
 		
 		txtEventInfo = new JTextArea();
 		txtEventInfo.setEditable(false);
@@ -93,71 +95,76 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 
 	@Override
 	public void nativeKeyPressed(NativeKeyEvent e) {
-				
-		switch (state){
-		
-			case "store":
-				
-				// ko/en change => e.getKeyCode = 112;
-				// backspace => e.getKeyCode = 14
-				if (e.getKeyCode() == 112 && restoreString.size() != 0) {
-								
-					// if (ModeErrorUtil.isWordInDic(restoreString) == false){
-					if ((ModeErrorUtil.realLanguage(restoreString) == "ko") && (ModeErrorUtil.nowlanguage() == "ko")
-							|| (ModeErrorUtil.realLanguage(restoreString) == "en") && (ModeErrorUtil.nowlanguage() == "en")){
+	
+		if (limitNumber < 11) {
+			
+			switch (state){
+			
+				case "store":
+					
+					// ko/en change => e.getKeyCode = 112;
+					// backspace => e.getKeyCode = 14
+					if (e.getKeyCode() == 112 && restoreString.size() != 0) {
 						
-						state = "recover";
+						// if (ModeErrorUtil.isWordInDic(restoreString) == false){
+						if ((ModeErrorUtil.realLanguage(restoreString) == "ko") && (ModeErrorUtil.nowlanguage() == "ko")
+								|| (ModeErrorUtil.realLanguage(restoreString) == "en") && (ModeErrorUtil.nowlanguage() == "en")){
 						
-						try {
-							ModeErrorUtil.robotInput(restoreString, backCount);
-						} catch (Exception e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
+							state = "recover";
+						
+							try {
+								ModeErrorUtil.robotInput(restoreString, backCount);
+							} catch (Exception e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
 
-					} else {
-						restoreString.clear();
-						tmpString.clear();
-					}
+						} else {
+							restoreString.clear();
+							tmpString.clear();
+						}
 	
-				} else {
-	
-					// space => e.getKeyCode = 57
-					if (e.getKeyCode() == 57) {
-						restoreString.clear();
-						tmpString.clear();
 					} else {
-						if (!(restoreString.size() == 0 && e.getKeyCode() == 14)) {
-							if ((e.getKeyCode() != 112) && (e.getKeyCode() != 14)) {
-								restoreString.add(e.getKeyCode());
-								tmpString.add(e.getKeyCode());
-							} else {
-								if (restoreString.size() != 0 && tmpString.size() != 0){
-									restoreString.remove(restoreString.size()-1);
-									tmpString.remove(tmpString.size()-1);
+	
+						// space => e.getKeyCode = 57
+						if (e.getKeyCode() == 57) {
+							restoreString.clear();
+							tmpString.clear();
+						} else {
+							if (!(restoreString.size() == 0 && e.getKeyCode() == 14)) {
+								if ((e.getKeyCode() != 112) && (e.getKeyCode() != 14)) {
+									restoreString.add(e.getKeyCode());
+									tmpString.add(e.getKeyCode());
+								} else {
+									if (restoreString.size() != 0 && tmpString.size() != 0){
+										restoreString.remove(restoreString.size()-1);
+										tmpString.remove(tmpString.size()-1);
+									}
 								}
 							}
 						}
 					}
-				}
 				
-				break;
+					break;
 				
-			case "recover":
+				case "recover":
 				
-				if (tmpString.size() == 0) {
-					tmpString.addAll(restoreString);
-				} else if (tmpString.size() == 1){
-					state = "store";
-					restoreString.clear();
-					tmpString.clear();
-				} else if (e.getKeyCode() != 14 && e.getKeyCode() != 57) {
-					if (tmpString.size() != 0){
-						tmpString.remove(tmpString.size()-1);
+					if (tmpString.size() == 0) {
+						tmpString.addAll(restoreString);
+					} else if (tmpString.size() == 1){
+						state = "store";
+						restoreString.clear();
+						tmpString.clear();
+					} else if (e.getKeyCode() != 14 && e.getKeyCode() != 57) {
+						if (tmpString.size() != 0){
+							tmpString.remove(tmpString.size()-1);
+						}
 					}
-				}
 				
-				break;
+					break;
+			}
+			
+			limitNumber += 1;
 		}
 		
 		txtEventInfo.append("----------------------\n");
