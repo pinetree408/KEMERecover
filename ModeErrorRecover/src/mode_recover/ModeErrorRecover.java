@@ -210,6 +210,21 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 				new ModeErrorRecover();
 			}
 		});
+		
+		String topProcess = "initial";
+		
+		while (true) {
+			
+			String nowTopProcess = ModeErrorUtil.nowTopProcess();
+
+			if (!nowTopProcess.equals("") && !topProcess.equals("") && !nowTopProcess.equals(topProcess)) {
+				
+				topProcess = nowTopProcess;
+				
+				limitNumber = 0;
+				
+			}
+		}
 	}
 
 	@Override
