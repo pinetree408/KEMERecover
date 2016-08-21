@@ -3,6 +3,7 @@ package mode_recover;
 import java.util.ArrayList;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.im.InputContext;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -21,7 +22,13 @@ import org.jnativehook.SwingDispatchService;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
+import com.sun.jna.Platform;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
+
+import mode_recover.ModeErrorUtil.Ime;
 import mode_recover.ModeErrorUtil.Logger;
+import mode_recover.ModeErrorUtil.MyUser32;
 import mode_recover.ModeErrorUtil;
 
 
@@ -41,6 +48,8 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	private static String state;
 	private int backCount;
 	private static int limitNumber;
+	private static boolean cmdKeyPressed;
+	private static String topProcess;
 
 	public ModeErrorRecover() {
 		setTitle("ModeError Alarm");
@@ -53,18 +62,20 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		
 		setLocation((screenSize.width - frameSize.width), 0);
-		
+
 		restoreString = new ArrayList<Integer>();
 		tmpString = new ArrayList<Integer>();
 		state = "store";
 		backCount = 0;
 		limitNumber = 0;
+		cmdKeyPressed= false;
+		topProcess = "initial";
 		
 		txtEventInfo = new JTextArea();
 		txtEventInfo.setEditable(false);
 		txtEventInfo.setBackground(new Color(0xFF, 0xFF, 0xFF));
 		txtEventInfo.setForeground(new Color(0x00, 0x00, 0x00));
-		txtEventInfo.setText("");
+		txtEventInfo.setText("test");
 
 		JScrollPane scrollPane = new JScrollPane(txtEventInfo);
 		scrollPane.setPreferredSize(new Dimension(375, 125));
@@ -92,35 +103,110 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 			txtEventInfo.setCaretPosition(txtEventInfo.getDocument().getLength());
 		}
 	}
+	
+	public boolean isLanguageChangeKeyPressed(int keyCode) {
+		
+		if (Platform.isWindows()) {
 
+			if (keyCode == 112) {
+				return true;
+			}
+			
+		}else if (Platform.isMac()){
+
+			if (cmdKeyPressed == true && keyCode == 57) {
+				//cmdKeyPressed = false;
+				return true;
+			}	
+			
+		}
+		return false;
+	}
+	
+	public boolean canRecover(ArrayList<Integer> restoreString) {
+		
+		if (Platform.isWindows()) {
+
+			if (((ModeErrorUtil.realLanguage(restoreString) == "ko") && (ModeErrorUtil.nowlanguage() == "ko"))
+					|| ((ModeErrorUtil.realLanguage(restoreString) == "en") && (ModeErrorUtil.nowlanguage() == "en"))){
+				return true;
+			}
+			
+		}else if (Platform.isMac()){
+
+			if (((ModeErrorUtil.realLanguage(restoreString) == "ko") && (ModeErrorUtil.nowlanguage() == "en"))
+					|| ((ModeErrorUtil.realLanguage(restoreString) == "en") && (ModeErrorUtil.nowlanguage() == "ko"))){
+				return true;
+			}	
+			
+		}
+		
+		return false;
+	}
+
+	@Override
+	public void nativeKeyReleased(NativeKeyEvent e) {
+		// TODO Auto-generated method stub
+		if (cmdKeyPressed == true && state.equals("recover")) {
+			cmdKeyPressed = false;
+			try {
+				ModeErrorUtil.robotInput(restoreString, backCount);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		
+	}
+	
 	@Override
 	public void nativeKeyPressed(NativeKeyEvent e) {
 	
+		String nowTopProcess = ModeErrorUtil.nowTopProcess();
+
+		if (!nowTopProcess.equals("") && !topProcess.equals("") && !nowTopProcess.equals(topProcess)) {
+			
+			topProcess = nowTopProcess;
+			
+			limitNumber = 0;
+			state = "store";
+			restoreString.clear();
+			tmpString.clear();
+			
+		}
+		
 		if (limitNumber < 11) {
 			
 			switch (state){
 			
 				case "store":
 					
-					limitNumber += 1;
-					
 					// ko/en change => e.getKeyCode = 112;
 					// backspace => e.getKeyCode = 14
-					if (e.getKeyCode() == 112 && restoreString.size() != 0) {
+					
+					/// mac command => 3676
+					
+					if (e.getKeyCode() == 3676) {
+						cmdKeyPressed = true;
+					}
+					
+					if (isLanguageChangeKeyPressed(e.getKeyCode()) == true && restoreString.size() != 0) {
 						
 						// if (ModeErrorUtil.isWordInDic(restoreString) == false){
-						if ((ModeErrorUtil.realLanguage(restoreString) == "ko") && (ModeErrorUtil.nowlanguage() == "ko")
-								|| (ModeErrorUtil.realLanguage(restoreString) == "en") && (ModeErrorUtil.nowlanguage() == "en")){
+						
+						if (canRecover(restoreString)){
 						
 							state = "recover";
 						
+							/*
 							try {
 								ModeErrorUtil.robotInput(restoreString, backCount);
 							} catch (Exception e1) {
 								// TODO Auto-generated catch block
 								e1.printStackTrace();
 							}
-
+							*/
+							
 						} else {
 							restoreString.clear();
 							tmpString.clear();
@@ -129,16 +215,17 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 					} else {
 	
 						// space => e.getKeyCode = 57
-						if (e.getKeyCode() == 57) {
+						if (e.getKeyCode() == 57 && cmdKeyPressed == false) {
 							restoreString.clear();
 							tmpString.clear();
 						} else {
 							if (!(restoreString.size() == 0 && e.getKeyCode() == 14)) {
-								if ((e.getKeyCode() != 112) && (e.getKeyCode() != 14)) {
+								if ((e.getKeyCode() != 112) && (e.getKeyCode() != 14) && (e.getKeyCode() != 3676)) {
 									restoreString.add(e.getKeyCode());
 									tmpString.add(e.getKeyCode());
+									limitNumber += 1;
 								} else {
-									if (restoreString.size() != 0 && tmpString.size() != 0){
+									if (restoreString.size() != 0 && tmpString.size() != 0 && (e.getKeyCode() != 3676)){
 										restoreString.remove(restoreString.size()-1);
 										tmpString.remove(tmpString.size()-1);
 									}
@@ -170,7 +257,9 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		
 		txtEventInfo.append("----------------------\n");
 		displayEventInfo(e);
+		txtEventInfo.append("-" + String.valueOf(limitNumber));
 		txtEventInfo.append("-" + state);
+		txtEventInfo.append("-" + cmdKeyPressed);
 		txtEventInfo.append("-" + restoreString.toString());
 		txtEventInfo.append("-" + tmpString.toString());
 		txtEventInfo.append("-" + ModeErrorUtil.nowlanguage());
@@ -211,24 +300,6 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 				new ModeErrorRecover();
 			}
 		});
-		
-		String topProcess = "initial";
-		
-		while (true) {
-			
-			String nowTopProcess = ModeErrorUtil.nowTopProcess();
-
-			if (!nowTopProcess.equals("") && !topProcess.equals("") && !nowTopProcess.equals(topProcess)) {
-				
-				topProcess = nowTopProcess;
-				
-				limitNumber = 0;
-				state = "store";
-				restoreString.clear();
-				tmpString.clear();
-				
-			}
-		}
 	}
 
 	@Override
@@ -254,12 +325,6 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	@Override
 	public void windowDeactivated(WindowEvent e) {
 		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void nativeKeyReleased(NativeKeyEvent arg0) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override

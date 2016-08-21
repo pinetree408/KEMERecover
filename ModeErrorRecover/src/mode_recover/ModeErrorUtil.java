@@ -590,7 +590,7 @@ public class ModeErrorUtil {
 	    Ime INSTANCE = (Ime)Native.loadLibrary("imm32.dll", Ime.class);
 	    HWND ImmGetDefaultIMEWnd(HWND hWnd);
 	}
-	
+ 
 	public static String nowlanguage(){
 		
 		String ret = new String();
