@@ -4,12 +4,9 @@ import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.awt.im.InputContext;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -75,41 +72,6 @@ public class ModeErrorUtil {
 		}
 	}
 	
-	public static boolean isWordInDic(ArrayList<Integer> arrayString) {
-		
-		boolean isIn = false;
-		String dict;
-		String s;
-	    
-	    String compared = ModeErrorUtil.joinArrayList(arrayString).replace(".", "");
-	    
-	    if (ModeErrorUtil.nowlanguage() == "ko") {
-	    	dict = "/dict/wordsEn.txt";
-	    } else {
-	    	dict = "/dict/wordsKo.txt";
-	    	compared = ModeErrorUtil.eTok(compared);
-	    }
-	    
-	    InputStream input = ModeErrorUtil.class.getResourceAsStream(dict);
-	    BufferedReader in = new BufferedReader(new InputStreamReader(input));
-	    
-		try {
-		    while ((s = in.readLine()) != null) {
-		    	if (s.equals(compared)){
-		    		isIn = true;
-		    	};
-		    }
-		    in.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		if (isIn){
-			return true;
-		}
-		return false;
-	}
-	
 	public static boolean isKeyShift(int KeyCode) {
 		
 		if ((KeyCode == 42) || (KeyCode == 54)) {
@@ -117,7 +79,7 @@ public class ModeErrorUtil {
 		}
 		return false;
 	}
-	
+		
 	public static double pme(int a, int b) {
 		Map<Integer, Double> pme = new HashMap<Integer, Double>();
 		

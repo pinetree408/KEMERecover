@@ -3,7 +3,6 @@ package mode_recover;
 import java.util.ArrayList;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.im.InputContext;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -23,12 +22,8 @@ import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
 import com.sun.jna.Platform;
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef;
 
-import mode_recover.ModeErrorUtil.Ime;
 import mode_recover.ModeErrorUtil.Logger;
-import mode_recover.ModeErrorUtil.MyUser32;
 import mode_recover.ModeErrorUtil;
 
 
@@ -52,7 +47,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	private static String topProcess;
 
 	public ModeErrorRecover() {
-		setTitle("ModeError Alarm");
+		setTitle("ModeError Recover");
 		setLayout(new BorderLayout());
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setSize(500, 600);
@@ -63,6 +58,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		
 		setLocation((screenSize.width - frameSize.width), 0);
 
+		logger = new Logger("result.txt");
 		restoreString = new ArrayList<Integer>();
 		tmpString = new ArrayList<Integer>();
 		state = "store";
@@ -75,7 +71,6 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		txtEventInfo.setEditable(false);
 		txtEventInfo.setBackground(new Color(0xFF, 0xFF, 0xFF));
 		txtEventInfo.setForeground(new Color(0x00, 0x00, 0x00));
-		txtEventInfo.setText("test");
 
 		JScrollPane scrollPane = new JScrollPane(txtEventInfo);
 		scrollPane.setPreferredSize(new Dimension(375, 125));
@@ -161,19 +156,6 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	
 	@Override
 	public void nativeKeyPressed(NativeKeyEvent e) {
-	
-		String nowTopProcess = ModeErrorUtil.nowTopProcess();
-
-		if (!nowTopProcess.equals("") && !topProcess.equals("") && !nowTopProcess.equals(topProcess)) {
-			
-			topProcess = nowTopProcess;
-			
-			limitNumber = 0;
-			state = "store";
-			restoreString.clear();
-			tmpString.clear();
-			
-		}
 		
 		if (limitNumber < 11) {
 			
@@ -191,8 +173,6 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 					}
 					
 					if (isLanguageChangeKeyPressed(e.getKeyCode()) == true && restoreString.size() != 0) {
-						
-						// if (ModeErrorUtil.isWordInDic(restoreString) == false){
 						
 						if (canRecover(restoreString)){
 						
@@ -296,12 +276,27 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	 * @param args unused.
 	 */
 	public static void main(String[] args) {
-		logger = new Logger("out.txt");
+
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				new ModeErrorRecover();
 			}
 		});
+
+		while (true) {
+			String nowTopProcess = ModeErrorUtil.nowTopProcess();
+			
+			if (!nowTopProcess.equals("") && !topProcess.equals("") && !nowTopProcess.equals(topProcess)) {
+			
+				topProcess = nowTopProcess;
+			
+				limitNumber = 0;
+				state = "store";
+				restoreString.clear();
+				tmpString.clear();
+			
+			}
+		}
 	}
 
 	@Override
