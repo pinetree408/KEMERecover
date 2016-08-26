@@ -198,14 +198,16 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 						
 							state = "recover";
 						
-							/*
-							try {
-								ModeErrorUtil.robotInput(restoreString, backCount);
-							} catch (Exception e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							}
-							*/
+						    if (Platform.isWindows()) {
+							
+						    	try {
+						    		ModeErrorUtil.robotInput(restoreString, backCount);
+						    	} catch (Exception e1) {
+						    		// TODO Auto-generated catch block
+						    		e1.printStackTrace();
+						    	}
+							
+						    }
 							
 						} else {
 							restoreString.clear();
