@@ -1,6 +1,8 @@
 package mode_recover;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.BorderLayout;
@@ -23,7 +25,6 @@ import org.jnativehook.keyboard.NativeKeyListener;
 
 import com.sun.jna.Platform;
 
-import mode_recover.ModeErrorUtil.Logger;
 import mode_recover.ModeErrorUtil;
 
 
@@ -36,7 +37,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	private static JTextArea txtEventInfo;
 
 	/** buffer writer to save log */
-	private static Logger logger;
+	private static ModeErrorUtil.Logger logger;
 	
 	private static ArrayList<Integer> restoreString;
 	private static ArrayList<Integer> tmpString;
@@ -58,7 +59,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		
 		setLocation((screenSize.width - frameSize.width), 0);
 
-		logger = new Logger("result.txt");
+		logger = new ModeErrorUtil.Logger("result.txt");
 		restoreString = new ArrayList<Integer>();
 		tmpString = new ArrayList<Integer>();
 		state = "store";
@@ -75,6 +76,9 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		JScrollPane scrollPane = new JScrollPane(txtEventInfo);
 		scrollPane.setPreferredSize(new Dimension(375, 125));
 		add(scrollPane, BorderLayout.CENTER);
+		
+        Logger EventLogger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
+        EventLogger.setLevel(Level.OFF);
 		
 		GlobalScreen.setEventDispatcher(new SwingDispatchService());
 		
