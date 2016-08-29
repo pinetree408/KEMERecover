@@ -46,19 +46,10 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	private static int limitNumber;
 	private static boolean cmdKeyPressed;
 	private static String topProcess;
+	private static boolean deploy;
 
 	public ModeErrorRecover() {
-		setTitle("ModeError Recover");
-		setLayout(new BorderLayout());
-		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		setSize(500, 600);
-		addWindowListener(this);
-
-		Dimension frameSize = getSize();
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		
-		setLocation((screenSize.width - frameSize.width), 0);
-
 		logger = new ModeErrorUtil.Logger("result.txt");
 		restoreString = new ArrayList<Integer>();
 		tmpString = new ArrayList<Integer>();
@@ -67,6 +58,22 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		limitNumber = 0;
 		cmdKeyPressed= false;
 		topProcess = "initial";
+		deploy = true;
+		
+		setTitle("ModeError Recover");
+		setLayout(new BorderLayout());
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		if (!deploy) {
+			setSize(500, 600);
+		} else {
+			setSize(0, 0);
+		}
+		addWindowListener(this);
+
+		Dimension frameSize = getSize();
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		
+		setLocation((screenSize.width - frameSize.width), 0);
 		
 		txtEventInfo = new JTextArea();
 		txtEventInfo.setEditable(false);
@@ -83,7 +90,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		GlobalScreen.setEventDispatcher(new SwingDispatchService());
 		
 		setVisible(true);
-		
+
 	}
 	
 	private void displayEventInfo(NativeKeyEvent e) {
