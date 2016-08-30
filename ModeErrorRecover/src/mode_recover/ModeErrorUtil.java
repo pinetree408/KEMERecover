@@ -4,14 +4,8 @@ import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.awt.im.InputContext;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,12 +33,150 @@ import java.lang.reflect.Modifier;
 
 public class ModeErrorUtil {
 	
-	public static void robotInput(ArrayList<Integer> arrayString, int backCount) throws Exception {
+	static Map<Integer, Double> pme;
+	static Map<Integer, Double> pmk;
+	
+	static String enH = "rRseEfaqQtTdwWczxvg";
+	static String regH;
+	static String regB = "hk|ho|hl|nj|np|nl|ml|k|o|i|O|j|p|u|P|h|y|n|b|m|l";
+    static String regF = "rt|sw|sg|fr|fa|fq|ft|fx|fv|fg|qt|r|R|s|e|f|a|q|t|T|d|w|c|z|x|v|g|";
+    static Map<String, Integer> enB;
+    static Map<String, Integer> enF;
+    static String regex;
+    static HashMap<Integer, String> nativeKeyCodes; 
+    static HashMap<String, Integer> javaKeyCodes; 
+    
+    
+	public static double pme(int a, int b) {
+		
+		int key = a * 10 + b;
+		double result = pme.get(key);
+		
+		return result;
+	}
+	
+	public static double pmk(int a, int b) {
+		
+		int key = a * 10 + b;
+		double result = pmk.get(key);
+		
+		return result;
+	}
+	
+	public static String eTok(String english) {
+		
+		Pattern p = Pattern.compile(regex);
+		Matcher m = p.matcher(english);
+		StringBuffer sb = new StringBuffer();
+		
+		while (m.find()) {
+			
+			int charCode = enH.indexOf((m.group().charAt(0))) * 588;
+			
+			if (m.group().length() > 2) {
+				if (enF.get(String.valueOf(m.group().charAt(2))) != null) {
+					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28 + enF.get(String.valueOf(m.group().charAt(2)));
+				} else {
+					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))+String.valueOf(m.group().charAt(2))) * 28;
+				}
+			} else {
+				charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28;
+			}
+			
+			charCode = charCode + 44032;
+			
+		    m.appendReplacement(sb, Character.toString((char) charCode));
+		}
+		m.appendTail(sb);
+		
+		return sb.toString();
+	}
+	
+	public static boolean isCompleteKorean(ArrayList<Integer> arrayString) {
+		
+	    String english = ModeErrorUtil.joinArrayList(arrayString).replace(".", "");
+		
+		Pattern p = Pattern.compile(regex);
+		Matcher m = p.matcher(english);
+		StringBuffer sb = new StringBuffer();
+		
+		int initialLength = english.length();
+		int finalLength = 0;
+
+		while (m.find()) {
+			
+			finalLength = finalLength + m.group().length();
+
+			int charCode = enH.indexOf((m.group().charAt(0))) * 588;
+			
+			if (m.group().length() > 2) {
+				if (enF.get(String.valueOf(m.group().charAt(2))) != null) {
+					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28 + enF.get(String.valueOf(m.group().charAt(2)));
+				} else {
+					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))+String.valueOf(m.group().charAt(2))) * 28;
+				}
+			} else {
+				charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28;
+			}
+			
+			charCode = charCode + 44032;
+			
+		    m.appendReplacement(sb, Character.toString((char) charCode));
+		}
+		m.appendTail(sb);
+		
+		if ((initialLength - finalLength) == 0) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public String realLanguage(ArrayList<Integer> arrayString) {
+		
+	    String english = ModeErrorUtil.joinArrayList(arrayString).replace(".", "");
+		
+		Pattern p = Pattern.compile(regex);
+		Matcher m = p.matcher(english);
+		StringBuffer sb = new StringBuffer();
+		
+		int initialLength = english.length();
+		int finalLength = 0;
+
+		while (m.find()) {
+			
+			finalLength = finalLength + m.group().length();
+
+			int charCode = enH.indexOf((m.group().charAt(0))) * 588;
+			
+			if (m.group().length() > 2) {
+				if (enF.get(String.valueOf(m.group().charAt(2))) != null) {
+					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28 + enF.get(String.valueOf(m.group().charAt(2)));
+				} else {
+					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))+String.valueOf(m.group().charAt(2))) * 28;
+				}
+			} else {
+				charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28;
+			}
+			
+			charCode = charCode + 44032;
+			
+		    m.appendReplacement(sb, Character.toString((char) charCode));
+		}
+		m.appendTail(sb);
+		
+		if (ModeErrorUtil.pme(initialLength, finalLength) > ModeErrorUtil.pmk(initialLength, finalLength)) {
+			return "en";
+		}
+		
+		return "ko";
+	}
+	
+	public void robotInput(ArrayList<Integer> arrayString, String nowLang, int backCount) throws Exception {
 		
 		int restoreSize = arrayString.size();
 		String joinedString = ModeErrorUtil.joinArrayList(arrayString);
 		int deleteSize = joinedString.length();
-		String nowLang = ModeErrorUtil.nowlanguage();
 		
 		if (nowLang.equals("en")) {
 			deleteSize = ModeErrorUtil.eTok(joinedString).length();
@@ -79,9 +211,155 @@ public class ModeErrorUtil {
 		}
 		return false;
 	}
+	
+	public static String joinArrayList(ArrayList<Integer> arrayString) {
+
+	    String listString = "";
+	    String regex = "[A-Za-z]";
+	    
+	    for (int i = 0; i < arrayString.size(); i++) {
+	    	String temp = NativeKeyEvent.getKeyText(arrayString.get(i));
+
+			if (temp.matches(regex)){
+				if (!((i > 0) && NativeKeyEvent.getKeyText(arrayString.get(i-1)).contains("Shift"))) {
+					temp = temp.toLowerCase();
+				}
+				listString += temp;
+			} else if (!temp.contains("Shift")){
+				listString += ".";
+			}
+	    }
+
+		return listString;
+	}
+	
+	public interface Psapi extends StdCallLibrary {
+	    Psapi INSTANCE = (Psapi) Native.loadLibrary("Psapi", Psapi.class);
+
+	    WinDef.DWORD GetModuleBaseNameW(Pointer hProcess, Pointer hModule, byte[] lpBaseName, int nSize);
+	}
+
+	public interface MyUser32 extends User32 {
+	    MyUser32 INSTANCE = (MyUser32)Native.loadLibrary("user32", MyUser32.class, W32APIOptions.DEFAULT_OPTIONS);
+	    int SendMessage(HWND hWnd, int Msg, int wParam, int lParam);
+	}
+	
+	public interface Ime extends User32 {
+	    Ime INSTANCE = (Ime)Native.loadLibrary("imm32.dll", Ime.class);
+	    HWND ImmGetDefaultIMEWnd(HWND hWnd);
+	}
+ 
+	public String nowlanguage(){
 		
-	public static double pme(int a, int b) {
-		Map<Integer, Double> pme = new HashMap<Integer, Double>();
+		String ret = "";
+		
+		if (Platform.isWindows()) {
+			
+			WinDef.HWND windowHandle = User32.INSTANCE.GetForegroundWindow();
+		    WinDef.HWND hwndIme = Ime.INSTANCE.ImmGetDefaultIMEWnd(windowHandle);
+			
+		    if ( MyUser32.INSTANCE.SendMessage(hwndIme, 0x0283, 0x05, 0) == 0){
+		    	ret = "en";
+		    }else{
+		    	ret = "ko";
+		    }
+		    
+		}else if (Platform.isMac()){
+			
+			ret = InputContext.getInstance().getLocale().getLanguage();
+			
+		}
+		
+		return ret;
+	}
+	
+	public static void changelanguage() {
+		
+		if (Platform.isWindows()) {
+			
+			User32 user32 = User32.INSTANCE;
+			WinDef.HWND windowHandle=user32.GetForegroundWindow();
+		    Ime ime = Ime.INSTANCE;
+		    WinDef.HWND hwndIme = ime.ImmGetDefaultIMEWnd(windowHandle);
+		    int test = MyUser32.INSTANCE.SendMessage(hwndIme, 0x0283, 0x05, 0);
+		    int change = test == 0 ? 1 : 0; 
+		    MyUser32.INSTANCE.SendMessage(hwndIme, 0x0283, 2, change);
+
+		}else if (Platform.isMac()){
+			
+			//InputContext test = InputContext.getInstance();
+			
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public String nowTopProcess() {
+		
+		String processName = "";
+		
+		if (Platform.isWindows()) {
+			
+			final int PROCESS_VM_READ = 0x0010;
+		    final int PROCESS_QUERY_INFORMATION = 0x0400;
+		    
+		    WinDef.HWND windowHandle = User32.INSTANCE.GetForegroundWindow();
+		    IntByReference pid = new IntByReference();
+		    User32.INSTANCE.GetWindowThreadProcessId(windowHandle, pid);
+		    WinNT.HANDLE processHandle = Kernel32.INSTANCE.OpenProcess(PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, true, pid.getValue());
+		    
+		    byte[] filename = new byte[512];
+		    
+		    try {
+		    	Psapi.INSTANCE.GetModuleBaseNameW(processHandle.getPointer(), Pointer.NULL, filename, filename.length);
+		    } catch(NullPointerException e) {
+		    	e.getStackTrace();
+		    }
+		    
+		    String temp = "";
+		    
+		    for (int i = 0; i < 32; i++) {
+		    	if (filename[i] != 0x00) {
+		            temp += (char)filename[i];
+		    	} 
+		    }
+		    
+		    processName = temp;
+		    
+		} else if(Platform.isMac()) {
+			String script="tell application \"System Events\"\n" +
+					"\tname of application processes whose frontmost is true\n" +
+					"end";
+			ScriptEngine appleScript = new ScriptEngineManager().getEngineByName("AppleScriptEngine");
+		
+			ArrayList<String> stockList = null;
+			
+			try {
+				stockList = (ArrayList<String>) appleScript.eval(script);
+			} catch (ScriptException e1) {
+					// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+			processName = stockList.toString();
+
+		}
+        
+		return processName;
+	}
+	
+	public static int getKeyCode(Integer input) throws Exception{
+		
+		String nativeKey = nativeKeyCodes.get(input);
+		String[] nativeKeyArray = nativeKey.split("_");
+		String finalNativeKey = "VK_" + nativeKeyArray[1];
+
+		int result = javaKeyCodes.get(finalNativeKey);
+	    return result;
+	}
+
+	public ModeErrorUtil() {
+
+		pme = new HashMap<Integer, Double>();
 		
 		pme.put(20, 60.28);
 		pme.put(22, 39.72);
@@ -146,14 +424,7 @@ public class ModeErrorUtil {
 		pme.put(109, 0.24);
 		pme.put(110, 0.77);
 		
-		int key = a * 10 + b;
-		double result = pme.get(key);
-		
-		return result;
-	}
-	
-	public static double pmk(int a, int b) {
-		Map<Integer, Double> pmk = new HashMap<Integer, Double>();
+		pmk = new HashMap<Integer, Double>();
 		
 		pmk.put(20, 0.0);
 		pmk.put(22, 100.0);
@@ -218,18 +489,8 @@ public class ModeErrorUtil {
 		pmk.put(109, 17.04);
 		pmk.put(110, 82.96);
 		
-		int key = a * 10 + b;
-		double result = pmk.get(key);
-		
-		return result;
-	}
-	
-	public static String eTok(String english) {
-		
-		String enH = "rRseEfaqQtTdwWczxvg";
-		String regH = "[" + enH + "]";
-		
-		Map<String, Integer> enB = new HashMap<String, Integer>();
+		regH = "[" + enH + "]";
+		enB = new HashMap<String, Integer>();
 		enB.put("k", 0);
 		enB.put("o", 1);
 		enB.put("i", 2);
@@ -251,9 +512,8 @@ public class ModeErrorUtil {
 		enB.put("m", 18);
 		enB.put("ml", 19);
 		enB.put("l", 20);
-		String regB = "hk|ho|hl|nj|np|nl|ml|k|o|i|O|j|p|u|P|h|y|n|b|m|l";
 		
-		Map<String, Integer> enF = new HashMap<String, Integer>();
+		enF = new HashMap<String, Integer>();
 		enF.put("", 0);
 		enF.put("r", 1);
 		enF.put("R", 2);
@@ -282,447 +542,39 @@ public class ModeErrorUtil {
 		enF.put("x", 25);
 		enF.put("v", 26);
 		enF.put("g", 27);
-
-	    String regF = "rt|sw|sg|fr|fa|fq|ft|fx|fv|fg|qt|r|R|s|e|f|a|q|t|T|d|w|c|z|x|v|g|";
 		
-		String regex = "("+regH+")("+regB+")(("+regF+")(?=("+regH+")("+regB+"))|("+regF+"))";
+		regex = "("+regH+")("+regB+")(("+regF+")(?=("+regH+")("+regB+"))|("+regF+"))";
 		
-		Pattern p = Pattern.compile(regex);
-		Matcher m = p.matcher(english);
-		StringBuffer sb = new StringBuffer();
-		
-		while (m.find()) {
-			
-			int charCode = enH.indexOf((m.group().charAt(0))) * 588;
-			
-			if (m.group().length() > 2) {
-				if (enF.get(String.valueOf(m.group().charAt(2))) != null) {
-					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28 + enF.get(String.valueOf(m.group().charAt(2)));
-				} else {
-					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))+String.valueOf(m.group().charAt(2))) * 28;
-				}
-			} else {
-				charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28;
-			}
-			
-			charCode = charCode + 44032;
-			
-		    m.appendReplacement(sb, Character.toString((char) charCode));
-		}
-		m.appendTail(sb);
-		
-		return sb.toString();
-	}
-	
-	public static boolean isCompleteKorean(ArrayList<Integer> arrayString) {
-		
-	    String english = ModeErrorUtil.joinArrayList(arrayString).replace(".", "");
-		
-		String enH = "rRseEfaqQtTdwWczxvg";
-		String regH = "[" + enH + "]";
-		
-		Map<String, Integer> enB = new HashMap<String, Integer>();
-		enB.put("k", 0);
-		enB.put("o", 1);
-		enB.put("i", 2);
-		enB.put("O", 3);
-		enB.put("j", 4);
-		enB.put("p", 5);
-		enB.put("u", 6);
-		enB.put("P", 7);
-		enB.put("h", 8);
-		enB.put("hk", 9);
-		enB.put("ho", 10);
-		enB.put("hl", 11);
-		enB.put("y", 12);
-		enB.put("n", 13);
-		enB.put("nj", 14);
-		enB.put("np", 15);
-		enB.put("nl", 16);
-		enB.put("b", 17);
-		enB.put("m", 18);
-		enB.put("ml", 19);
-		enB.put("l", 20);
-		String regB = "hk|ho|hl|nj|np|nl|ml|k|o|i|O|j|p|u|P|h|y|n|b|m|l";
-		
-		Map<String, Integer> enF = new HashMap<String, Integer>();
-		enF.put("", 0);
-		enF.put("r", 1);
-		enF.put("R", 2);
-		enF.put("rt", 3);
-		enF.put("s", 4);
-		enF.put("sw", 5);
-		enF.put("sg", 6);
-		enF.put("e", 7);
-		enF.put("f", 8);
-		enF.put("fr", 9);
-		enF.put("fa", 10);
-		enF.put("fq", 11);
-		enF.put("ft", 12);
-		enF.put("fx", 13);
-		enF.put("fv", 14);
-		enF.put("fg", 15);
-		enF.put("a", 16);
-		enF.put("q", 17);
-		enF.put("qt", 18);
-		enF.put("t", 19);
-		enF.put("T", 20);
-		enF.put("d", 21);
-		enF.put("w", 22);
-		enF.put("c", 23);
-		enF.put("z", 24);
-		enF.put("x", 25);
-		enF.put("v", 26);
-		enF.put("g", 27);
-
-	    String regF = "rt|sw|sg|fr|fa|fq|ft|fx|fv|fg|qt|r|R|s|e|f|a|q|t|T|d|w|c|z|x|v|g|";
-		
-		String regex = "("+regH+")("+regB+")(("+regF+")(?=("+regH+")("+regB+"))|("+regF+"))";
-		
-		Pattern p = Pattern.compile(regex);
-		Matcher m = p.matcher(english);
-		StringBuffer sb = new StringBuffer();
-		
-		int initialLength = english.length();
-		int finalLength = 0;
-
-		while (m.find()) {
-			
-			finalLength = finalLength + m.group().length();
-
-			int charCode = enH.indexOf((m.group().charAt(0))) * 588;
-			
-			if (m.group().length() > 2) {
-				if (enF.get(String.valueOf(m.group().charAt(2))) != null) {
-					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28 + enF.get(String.valueOf(m.group().charAt(2)));
-				} else {
-					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))+String.valueOf(m.group().charAt(2))) * 28;
-				}
-			} else {
-				charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28;
-			}
-			
-			charCode = charCode + 44032;
-			
-		    m.appendReplacement(sb, Character.toString((char) charCode));
-		}
-		m.appendTail(sb);
-		
-		if ((initialLength - finalLength) == 0) {
-			return true;
-		}
-		
-		return false;
-	}
-	
-	public static String realLanguage(ArrayList<Integer> arrayString) {
-		
-	    String english = ModeErrorUtil.joinArrayList(arrayString).replace(".", "");
-		
-		String enH = "rRseEfaqQtTdwWczxvg";
-		String regH = "[" + enH + "]";
-		
-		Map<String, Integer> enB = new HashMap<String, Integer>();
-		enB.put("k", 0);
-		enB.put("o", 1);
-		enB.put("i", 2);
-		enB.put("O", 3);
-		enB.put("j", 4);
-		enB.put("p", 5);
-		enB.put("u", 6);
-		enB.put("P", 7);
-		enB.put("h", 8);
-		enB.put("hk", 9);
-		enB.put("ho", 10);
-		enB.put("hl", 11);
-		enB.put("y", 12);
-		enB.put("n", 13);
-		enB.put("nj", 14);
-		enB.put("np", 15);
-		enB.put("nl", 16);
-		enB.put("b", 17);
-		enB.put("m", 18);
-		enB.put("ml", 19);
-		enB.put("l", 20);
-		String regB = "hk|ho|hl|nj|np|nl|ml|k|o|i|O|j|p|u|P|h|y|n|b|m|l";
-		
-		Map<String, Integer> enF = new HashMap<String, Integer>();
-		enF.put("", 0);
-		enF.put("r", 1);
-		enF.put("R", 2);
-		enF.put("rt", 3);
-		enF.put("s", 4);
-		enF.put("sw", 5);
-		enF.put("sg", 6);
-		enF.put("e", 7);
-		enF.put("f", 8);
-		enF.put("fr", 9);
-		enF.put("fa", 10);
-		enF.put("fq", 11);
-		enF.put("ft", 12);
-		enF.put("fx", 13);
-		enF.put("fv", 14);
-		enF.put("fg", 15);
-		enF.put("a", 16);
-		enF.put("q", 17);
-		enF.put("qt", 18);
-		enF.put("t", 19);
-		enF.put("T", 20);
-		enF.put("d", 21);
-		enF.put("w", 22);
-		enF.put("c", 23);
-		enF.put("z", 24);
-		enF.put("x", 25);
-		enF.put("v", 26);
-		enF.put("g", 27);
-
-	    String regF = "rt|sw|sg|fr|fa|fq|ft|fx|fv|fg|qt|r|R|s|e|f|a|q|t|T|d|w|c|z|x|v|g|";
-		
-		String regex = "("+regH+")("+regB+")(("+regF+")(?=("+regH+")("+regB+"))|("+regF+"))";
-		
-		Pattern p = Pattern.compile(regex);
-		Matcher m = p.matcher(english);
-		StringBuffer sb = new StringBuffer();
-		
-		int initialLength = english.length();
-		int finalLength = 0;
-
-		while (m.find()) {
-			
-			finalLength = finalLength + m.group().length();
-
-			int charCode = enH.indexOf((m.group().charAt(0))) * 588;
-			
-			if (m.group().length() > 2) {
-				if (enF.get(String.valueOf(m.group().charAt(2))) != null) {
-					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28 + enF.get(String.valueOf(m.group().charAt(2)));
-				} else {
-					charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))+String.valueOf(m.group().charAt(2))) * 28;
-				}
-			} else {
-				charCode = charCode + enB.get(String.valueOf(m.group().charAt(1))) * 28;
-			}
-			
-			charCode = charCode + 44032;
-			
-		    m.appendReplacement(sb, Character.toString((char) charCode));
-		}
-		m.appendTail(sb);
-		
-		if (ModeErrorUtil.pme(initialLength, finalLength) > ModeErrorUtil.pmk(initialLength, finalLength)) {
-			return "en";
-		}
-		
-		return "ko";
-	}
-	
-	public static String joinArrayList(ArrayList<Integer> arrayString) {
-
-	    String listString = "";
-	    String regex = "[A-Za-z]";
-	    
-	    for (int i = 0; i < arrayString.size(); i++) {
-	    	String temp = NativeKeyEvent.getKeyText(arrayString.get(i));
-
-			if (temp.matches(regex)){
-				if (!((i > 0) && NativeKeyEvent.getKeyText(arrayString.get(i-1)).contains("Shift"))) {
-					temp = temp.toLowerCase();
-				}
-				listString += temp;
-			} else if (!temp.contains("Shift")){
-				listString += ".";
-			}
-	    }
-
-		return listString;
-	}
-	
-	public interface Psapi extends StdCallLibrary {
-	    Psapi INSTANCE = (Psapi) Native.loadLibrary("Psapi", Psapi.class);
-
-	    WinDef.DWORD GetModuleBaseNameW(Pointer hProcess, Pointer hModule, byte[] lpBaseName, int nSize);
-	}
-
-	public interface MyUser32 extends User32 {
-	    MyUser32 INSTANCE = (MyUser32)Native.loadLibrary("user32", MyUser32.class, W32APIOptions.DEFAULT_OPTIONS);
-	    int SendMessage(HWND hWnd, int Msg, int wParam, int lParam);
-	}
-	
-	public interface Ime extends User32 {
-	    Ime INSTANCE = (Ime)Native.loadLibrary("imm32.dll", Ime.class);
-	    HWND ImmGetDefaultIMEWnd(HWND hWnd);
-	}
- 
-	public static String nowlanguage(){
-		
-		String ret = new String();
-		
-		if (Platform.isWindows()) {
-			
-			User32 user32 = User32.INSTANCE;
-			WinDef.HWND windowHandle=user32.GetForegroundWindow();
-		    Ime ime = Ime.INSTANCE;
-		    WinDef.HWND hwndIme = ime.ImmGetDefaultIMEWnd(windowHandle);
-		    int test = MyUser32.INSTANCE.SendMessage(hwndIme, 0x0283, 0x05, 0);
-			
-		    if (test == 0){
-		    	ret = "en";
-		    }else{
-		    	ret = "ko";
-		    }
-		    
-		}else if (Platform.isMac()){
-			
-			InputContext test = InputContext.getInstance();
-			
-			ret = test.getLocale().getLanguage();
-			
-		}
-		
-		return ret;
-	}
-	
-	public static void changelanguage() {
-		
-		if (Platform.isWindows()) {
-			
-			User32 user32 = User32.INSTANCE;
-			WinDef.HWND windowHandle=user32.GetForegroundWindow();
-		    Ime ime = Ime.INSTANCE;
-		    WinDef.HWND hwndIme = ime.ImmGetDefaultIMEWnd(windowHandle);
-		    int test = MyUser32.INSTANCE.SendMessage(hwndIme, 0x0283, 0x05, 0);
-		    int change = test == 0 ? 1 : 0; 
-		    MyUser32.INSTANCE.SendMessage(hwndIme, 0x0283, 2, change);
-
-		}else if (Platform.isMac()){
-			
-			//InputContext test = InputContext.getInstance();
-			
-		}
-	}
-	
-	@SuppressWarnings("unchecked")
-	public static String nowTopProcess() {
-		
-		String processName = null;
-		
-		if (Platform.isWindows()) {
-			
-			final int PROCESS_VM_READ = 0x0010;
-		    final int PROCESS_QUERY_INFORMATION = 0x0400;
-		    final User32 user32 = User32.INSTANCE;
-		    final Kernel32 kernel32 = Kernel32.INSTANCE;
-		    final Psapi psapi = Psapi.INSTANCE;
-		    WinDef.HWND windowHandle = user32.GetForegroundWindow();
-		    IntByReference pid = new IntByReference();
-		    user32.GetWindowThreadProcessId(windowHandle, pid);
-		    WinNT.HANDLE processHandle = kernel32.OpenProcess(PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, true, pid.getValue());
-		    
-		    byte[] filename = new byte[512];
-		    
-		    try {
-		    	psapi.GetModuleBaseNameW(processHandle.getPointer(), Pointer.NULL, filename, filename.length);
-		    } catch(NullPointerException e) {
-		    	e.getStackTrace();
-		    }
-		    
-		    String temp = "";
-		    
-		    for (int i = 0; i < 32; i++) {
-		    	if (filename[i] != 0x00) {
-		            temp += (char)filename[i];
-		    	} 
-		    }
-		    
-		    processName = temp;
-		    
-		} else if(Platform.isMac()) {
-			String script="tell application \"System Events\"\n" +
-					"\tname of application processes whose frontmost is true\n" +
-					"end";
-			ScriptEngine appleScript = new ScriptEngineManager().getEngineByName("AppleScriptEngine");
-		
-			ArrayList<String> stockList = null;
-			
-			try {
-				stockList = (ArrayList<String>) appleScript.eval(script);
-			} catch (ScriptException e1) {
-					// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			
-			processName = stockList.toString();
-
-		}
-        
-		return processName;
-	}
-	
-	public static int getKeyCode(Integer input) throws Exception{
-
 		// Populate all the virtual key codes from NativeKeyEvent 
-		HashMap<Integer, String> nativeKeyCodes = new HashMap<Integer, String>(); 
+		nativeKeyCodes = new HashMap<Integer, String>(); 
 		Field nativeFields[] = NativeKeyEvent.class.getDeclaredFields(); 
 		for (int i = 0; i < nativeFields.length; i++) { 
 			String name = nativeFields[i].getName();
 			int mod = nativeFields[i].getModifiers();
 			if (Modifier.isPublic(mod) && Modifier.isStatic(mod) && Modifier.isFinal(mod) && name.startsWith("VC_")) {
-				nativeKeyCodes.put(nativeFields[i].getInt(null), name); 
+				try {
+					nativeKeyCodes.put(nativeFields[i].getInt(null), name);
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} 
 			} 
 		}
 	 
 		// Populate all the virtual key codes from KeyEvent 
-		HashMap<String, Integer> javaKeyCodes = new HashMap<String, Integer>(); 
+		javaKeyCodes = new HashMap<String, Integer>(); 
 		Field javaFields[] = KeyEvent.class.getDeclaredFields(); 
 		for (int i = 0; i < javaFields.length; i++) { 
 			String name = javaFields[i].getName(); 
 			int mod = javaFields[i].getModifiers();
 			if (Modifier.isPublic(mod) && Modifier.isStatic(mod) && Modifier.isFinal(mod) && name.startsWith("VK_")) {
-				javaKeyCodes.put(name, javaFields[i].getInt(null)); 
+				try {
+					javaKeyCodes.put(name, javaFields[i].getInt(null));
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} 
 			} 
-		}
-		
-		String nativeKey = nativeKeyCodes.get(input);
-		String[] nativeKeyArray = nativeKey.split("_");
-		String finalNativeKey = "VK_" + nativeKeyArray[1];
-
-		int result = javaKeyCodes.get(finalNativeKey);
-	    return result;
-	}
-	
-	public static class Logger {
-		
-		private File logFile;
-		
-		public Logger() {
-			
-		}
-		
-		public Logger(String fileName) {
-			logFile = new File(fileName);
-		}
-		
-		public void log(NativeKeyEvent e) {
-			
-			Date d = new Date(e.getWhen());
-			SimpleDateFormat dateformat = new SimpleDateFormat("EEE MMM d HH:mm:ss:SSS z yyyy", Locale.KOREA);
-			String date = dateformat.format(d);
-			
-			String logString =
-				date +
-				"-" + NativeKeyEvent.getKeyText(e.getKeyCode()) +
-				"-" + nowlanguage() + 
-				"-" + nowTopProcess() +
-				"\r\n";
-
-			try {
-				FileWriter fw = new FileWriter(this.logFile, true);
-				fw.write(logString);
-				fw.close();
-			} catch (IOException exception) {
-				// TODO Auto-generated catch block
-				exception.printStackTrace();
-			}
 		}
 	}
 

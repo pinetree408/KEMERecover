@@ -26,6 +26,7 @@ import org.jnativehook.keyboard.NativeKeyListener;
 import com.sun.jna.Platform;
 
 import mode_recover.ModeErrorUtil;
+import mode_recover.ModeErrorLogger;
 
 
 public class ModeErrorRecover extends JFrame implements WindowListener, NativeKeyListener {
@@ -37,7 +38,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	private static JTextArea txtEventInfo;
 
 	/** buffer writer to save log */
-	private static ModeErrorUtil.Logger logger;
+	private static ModeErrorLogger logger;
 	
 	private static ArrayList<Integer> restoreString;
 	private static ArrayList<Integer> tmpString;
@@ -47,10 +48,12 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	private static boolean cmdKeyPressed;
 	private static String topProcess;
 	private static boolean deploy;
+	private static ModeErrorUtil MEUtil = new ModeErrorUtil();
+	static String nowTopProcess;
 
 	public ModeErrorRecover() {
 		
-		logger = new ModeErrorUtil.Logger("result.txt");
+		logger = new ModeErrorLogger("result.txt");
 		restoreString = new ArrayList<Integer>();
 		tmpString = new ArrayList<Integer>();
 		state = "store";
@@ -58,7 +61,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		limitNumber = 0;
 		cmdKeyPressed= false;
 		topProcess = "initial";
-		deploy = true;
+		deploy = false;
 		
 		setTitle("ModeError Recover");
 		setLayout(new BorderLayout());
@@ -133,15 +136,15 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		
 		if (Platform.isWindows()) {
 
-			if (((ModeErrorUtil.realLanguage(restoreString) == "ko") && (ModeErrorUtil.nowlanguage() == "ko"))
-					|| ((ModeErrorUtil.realLanguage(restoreString) == "en") && (ModeErrorUtil.nowlanguage() == "en"))){
+			if (((MEUtil.realLanguage(restoreString) == "ko") && (MEUtil.nowlanguage() == "ko"))
+					|| ((MEUtil.realLanguage(restoreString) == "en") && (MEUtil.nowlanguage() == "en"))){
 				return true;
 			}
 			
 		}else if (Platform.isMac()){
 
-			if (((ModeErrorUtil.realLanguage(restoreString) == "ko") && (ModeErrorUtil.nowlanguage() == "en"))
-					|| ((ModeErrorUtil.realLanguage(restoreString) == "en") && (ModeErrorUtil.nowlanguage() == "ko"))){
+			if (((MEUtil.realLanguage(restoreString) == "ko") && (MEUtil.nowlanguage() == "en"))
+					|| ((MEUtil.realLanguage(restoreString) == "en") && (MEUtil.nowlanguage() == "ko"))){
 				return true;
 			}	
 			
@@ -156,7 +159,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		if (cmdKeyPressed == true && state.equals("recover")) {
 			cmdKeyPressed = false;
 			try {
-				ModeErrorUtil.robotInput(restoreString, backCount);
+				MEUtil.robotInput(restoreString, MEUtil.nowlanguage(), backCount);
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -192,7 +195,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 						    if (Platform.isWindows()) {
 							
 						    	try {
-						    		ModeErrorUtil.robotInput(restoreString, backCount);
+						    		MEUtil.robotInput(restoreString, MEUtil.nowlanguage(), backCount);
 						    	} catch (Exception e1) {
 						    		// TODO Auto-generated catch block
 						    		e1.printStackTrace();
@@ -255,11 +258,11 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		txtEventInfo.append("-" + cmdKeyPressed);
 		txtEventInfo.append("-" + restoreString.toString());
 		txtEventInfo.append("-" + tmpString.toString());
-		txtEventInfo.append("-" + ModeErrorUtil.nowlanguage());
-		txtEventInfo.append("-" + ModeErrorUtil.nowTopProcess());
+		txtEventInfo.append("-" + MEUtil.nowlanguage());
+		txtEventInfo.append("-" + MEUtil.nowTopProcess());
 		txtEventInfo.append("\n");
 		txtEventInfo.append("*********\n");
-		logger.log(e);
+		logger.log(e, MEUtil.nowlanguage(), MEUtil.nowTopProcess());
 		
 	}
 	
@@ -295,7 +298,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		});
 
 		while (true) {
-			String nowTopProcess = ModeErrorUtil.nowTopProcess();
+			nowTopProcess = MEUtil.nowTopProcess();
 			
 			if (!nowTopProcess.equals("") && !topProcess.equals("") && !nowTopProcess.equals(topProcess)) {
 			
