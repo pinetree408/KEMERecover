@@ -171,6 +171,19 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 	@Override
 	public void nativeKeyPressed(NativeKeyEvent e) {
 		
+		nowTopProcess = MEUtil.nowTopProcess();
+		
+		if (!nowTopProcess.equals("") && !topProcess.equals("") && !nowTopProcess.equals(topProcess)) {
+		
+			topProcess = nowTopProcess;
+		
+			limitNumber = 0;
+			state = "store";
+			restoreString.clear();
+			tmpString.clear();
+		
+		}
+		
 		if (limitNumber < 11) {
 			
 			switch (state){
@@ -296,21 +309,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 				new ModeErrorRecover();
 			}
 		});
-
-		while (true) {
-			nowTopProcess = MEUtil.nowTopProcess();
-			
-			if (!nowTopProcess.equals("") && !topProcess.equals("") && !nowTopProcess.equals(topProcess)) {
-			
-				topProcess = nowTopProcess;
-			
-				limitNumber = 0;
-				state = "store";
-				restoreString.clear();
-				tmpString.clear();
-			
-			}
-		}
+		
 	}
 
 	@Override
