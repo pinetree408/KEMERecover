@@ -275,7 +275,7 @@ public class ModeErrorRecover extends JFrame implements WindowListener, NativeKe
 		txtEventInfo.append("-" + MEUtil.nowTopProcess());
 		txtEventInfo.append("\n");
 		txtEventInfo.append("*********\n");
-		logger.log(e, MEUtil.nowlanguage(), MEUtil.nowTopProcess());
+		logger.log(e, MEUtil.nowlanguage(), MEUtil.nowTopProcess(), state);
 		
 	}
 	

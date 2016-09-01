@@ -21,7 +21,7 @@ public class ModeErrorLogger {
 		logFile = new File(fileName);
 	}
 	
-	public void log(NativeKeyEvent e, String nowLanguage, String nowTopProcess) {
+	public void log(NativeKeyEvent e, String nowLanguage, String nowTopProcess, String state) {
 		
 		Date d = new Date(e.getWhen());
 		SimpleDateFormat dateformat = new SimpleDateFormat("EEE MMM d HH:mm:ss:SSS z yyyy", Locale.KOREA);
@@ -32,6 +32,7 @@ public class ModeErrorLogger {
 			"-" + NativeKeyEvent.getKeyText(e.getKeyCode()) +
 			"-" + nowLanguage + 
 			"-" + nowTopProcess +
+			"-" + state + 
 			"\r\n";
 
 		try {
