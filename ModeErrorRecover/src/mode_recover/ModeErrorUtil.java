@@ -178,8 +178,16 @@ public class ModeErrorUtil {
 		String joinedString = ModeErrorUtil.joinArrayList(arrayString);
 		int deleteSize = joinedString.length();
 		
-		if (nowLang.equals("en")) {
-			deleteSize = ModeErrorUtil.eTok(joinedString).length();
+		if (Platform.isMac()) {
+
+			if (nowLang.equals("ko")) {
+				deleteSize = ModeErrorUtil.eTok(joinedString).length();
+			}
+			
+		} else {
+			if (nowLang.equals("en")) {
+				deleteSize = ModeErrorUtil.eTok(joinedString).length();
+			}
 		}
 		
 		deleteSize = deleteSize - backCount;
