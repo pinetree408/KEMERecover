@@ -22,7 +22,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.5.0</version>
                 <configuration>
-                    <mainClass>com.pinetree408.keme.recover.Recover</mainClass>
+                    <mainClass>com.pinetree408.keme.recover.KEMERecover</mainClass>
                 </configuration>
             </plugin>
         </plugins>

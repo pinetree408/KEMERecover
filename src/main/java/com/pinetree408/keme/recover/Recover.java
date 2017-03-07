@@ -1,18 +1,11 @@
 package com.pinetree408.keme.recover;
 
 /** Created by user on 2017-01-02. */
-import org.jnativehook.GlobalScreen;
-import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
-import org.jnativehook.keyboard.NativeKeyListener;
 
 import com.sun.jna.Platform;
 
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import java.awt.AWTException;
 import java.awt.Robot;
@@ -20,7 +13,7 @@ import java.awt.Robot;
 import com.pinetree408.keme.util.Util;
 import com.pinetree408.keme.util.ModeErrorLogger;
 
-public class Recover implements NativeKeyListener {
+public class Recover {
 
   static Robot robot;
   static Util util;
@@ -34,10 +27,12 @@ public class Recover implements NativeKeyListener {
   private static int recoverState;
   private static final int store = 0;
   private static final int recover = 1;
+  private static final int recoverLimit = 11;
 
   private static ArrayList<Integer> restoreString;
-  private static int recoveredString;
+  private static int recoveredStringLength;
 
+  private static String platform;
   private static boolean cmdKeyPressed; // For mac
 
   public Recover() {
@@ -57,23 +52,27 @@ public class Recover implements NativeKeyListener {
 
     recoverState = store;
     restoreString = new ArrayList<Integer>();
-    recoveredString = 0;
+    recoveredStringLength = 0;
+
+    if (Platform.isWindows()){
+      platform = "Windows";
+    } else if (Platform.isMac()) {
+      platform = "Mac";
+    } else {
+      platform = "Unknown";
+    }
 
     cmdKeyPressed = false;
   }
 
   public boolean isLanguageChangeKeyPressed(int keyCode) {
 
-    if (Platform.isWindows()) {
-
+    if (platform.equals("Windows")) {
       if (keyCode == 112) {
         return true;
       }
-
-    } else if (Platform.isMac()) {
-
+    } else if (platform.equals("Mac")) {
       if (cmdKeyPressed == true && keyCode == 57) {
-        //cmdKeyPressed = false;
         return true;
       }
     }
@@ -82,14 +81,14 @@ public class Recover implements NativeKeyListener {
 
   public boolean canRecover(ArrayList<Integer> restoreString) {
 
-    if (Platform.isWindows()) {
+    if (platform.equals("Windows")) {
 
       if (((util.realLanguage(restoreString) == "ko") && (util.nowLanguage() == "ko"))
           || ((util.realLanguage(restoreString) == "en") && (util.nowLanguage() == "en"))) {
         return true;
       }
 
-    } else if (Platform.isMac()) {
+    } else if (platform.equals("Mac")) {
 
       if (((util.realLanguage(restoreString) == "ko") && (util.nowLanguage() == "en"))
           || ((util.realLanguage(restoreString) == "en") && (util.nowLanguage() == "ko"))) {
@@ -100,8 +99,8 @@ public class Recover implements NativeKeyListener {
     return false;
   }
 
-  public void nativeKeyPressed(NativeKeyEvent e) {
-    if (restoreString.size() < 11) {
+  public void keyPressed(NativeKeyEvent e) {
+    if (restoreString.size() < recoverLimit) {
       switch (recoverState) {
         case store:
           // ko/en change => e.getKeyCode = 112;
@@ -114,7 +113,7 @@ public class Recover implements NativeKeyListener {
           if (isLanguageChangeKeyPressed(e.getKeyCode()) == true && restoreString.size() != 0) {
             if (canRecover(restoreString)) {
               recoverState = recover;
-              if (Platform.isWindows()) {
+              if (platform.equals("Windows")) {
                 try {
                   util.robotInput(robot, restoreString, util.nowLanguage());
                 } catch (Exception e1) {
@@ -124,24 +123,24 @@ public class Recover implements NativeKeyListener {
               }
             } else {
               restoreString.clear();
-              recoveredString = 0;
+              recoveredStringLength = 0;
             }
           } else {
             // space => e.getKeyCode = 57
             if (e.getKeyCode() == 57 && cmdKeyPressed == false) {
               restoreString.clear();
-              recoveredString = 0;
+              recoveredStringLength = 0;
             } else {
               if (!(restoreString.size() == 0 && e.getKeyCode() == 14)) {
                 if ((e.getKeyCode() != 112) && (e.getKeyCode() != 14) && (e.getKeyCode() != 3676)) {
                   restoreString.add(e.getKeyCode());
-                  recoveredString += 1;
+                  recoveredStringLength += 1;
                 } else {
                   if (restoreString.size() != 0
-                      && recoveredString != 0
+                      && recoveredStringLength != 0
                       && (e.getKeyCode() != 3676)) {
                     restoreString.remove(restoreString.size() - 1);
-                    recoveredString -= 1;
+                    recoveredStringLength -= 1;
                   }
                 }
               }
@@ -150,15 +149,15 @@ public class Recover implements NativeKeyListener {
           break;
 
         case recover:
-          if (recoveredString == 0) {
-            recoveredString = restoreString.size();
-          } else if (recoveredString == 1) {
+          if (recoveredStringLength == 0) {
+            recoveredStringLength = restoreString.size();
+          } else if (recoveredStringLength == 1) {
             recoverState = store;
             restoreString.clear();
-            recoveredString = 0;
+            recoveredStringLength = 0;
           } else if (e.getKeyCode() != 14 && e.getKeyCode() != 57) {
-            if (recoveredString != 0) {
-              recoveredString -= 1;
+            if (recoveredStringLength != 0) {
+              recoveredStringLength -= 1;
             }
           }
           break;
@@ -167,54 +166,22 @@ public class Recover implements NativeKeyListener {
     meLogger.log(e, nowLanguage, nowTopProcess, "null", String.valueOf(recoverState));
   }
 
-  public static void main(String[] args) {
-    // Set jnativehook logger level to off state
-    Logger EventLogger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
-    EventLogger.setLevel(Level.OFF);
+  public void start() {
 
-    try {
-      GlobalScreen.registerNativeHook();
-    } catch (NativeHookException ex) {
-      System.err.println("There was a problem registering the native hook.");
-      System.err.println(ex.getMessage());
+    nowTopProcess = util.nowTopProcess();
 
-      System.exit(1);
+    if (!nowTopProcess.equals("")) {
+
+      if (!prevTopProcess.equals(nowTopProcess)) {
+
+        prevTopProcess = util.nowTopProcess();
+
+        nowLanguage = util.nowLanguage();
+
+        recoverState = store;
+        restoreString.clear();
+        recoveredStringLength = 0;
+      }
     }
-
-    GlobalScreen.addNativeKeyListener(new Recover());
-
-    Timer jobScheduler = new Timer();
-    jobScheduler.schedule(
-        new TimerTask() {
-          @Override
-          public void run() {
-
-            nowTopProcess = util.nowTopProcess();
-
-            if (!nowTopProcess.equals("")) {
-
-              if (!prevTopProcess.equals(nowTopProcess)) {
-
-                prevTopProcess = util.nowTopProcess();
-
-                nowLanguage = util.nowLanguage();
-
-                recoverState = store;
-                restoreString.clear();
-                recoveredString = 0;
-              }
-            }
-          }
-        },
-        0,
-        100);
-  }
-
-  public void nativeKeyReleased(NativeKeyEvent e) {
-    //System.out.println("Key Released: " + NativeKeyEvent.getKeyText(e.getKeyCode()));
-  }
-
-  public void nativeKeyTyped(NativeKeyEvent e) {
-    //System.out.println("Key Typed: " + e.getKeyText(e.getKeyCode()));
   }
 }
