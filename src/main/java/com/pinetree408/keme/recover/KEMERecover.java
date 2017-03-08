@@ -12,6 +12,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.awt.AWTException;
+import java.awt.Robot;
 ;
 import com.pinetree408.keme.util.ModeErrorLogger;
 import com.pinetree408.keme.util.TopProcess;
@@ -23,15 +25,23 @@ public class KEMERecover implements NativeKeyListener {
   private static ModeErrorLogger meLogger;
   static TopProcess topProcess;
 
+  static Robot robot;
+
   public KEMERecover() {
     meLogger = new ModeErrorLogger("result.txt");
     topProcess = new TopProcess();
 
     recover = new Recover();
+    try {
+      robot = new Robot();
+    } catch (AWTException ex) {
+      // TODO Auto-generated catch block
+      ex.printStackTrace();
+    }
   }
 
   public void nativeKeyPressed(NativeKeyEvent e) {
-    recover.keyPressed(e);
+    recover.keyPressed(e, robot);
     meLogger.log(e, topProcess.getNowLanguage(), topProcess.getNowTopProcess(), recover.getRecoverState(), "null");
   }
 

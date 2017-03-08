@@ -7,14 +7,12 @@ import com.sun.jna.Platform;
 
 import java.util.ArrayList;
 
-import java.awt.AWTException;
 import java.awt.Robot;
 
 import com.pinetree408.keme.util.Util;
 
 public class Recover {
 
-  static Robot robot;
   static Util util;
 
   private static int recoverState;
@@ -30,12 +28,6 @@ public class Recover {
 
   public Recover() {
 
-    try {
-      robot = new Robot();
-    } catch (AWTException ex) {
-      // TODO Auto-generated catch block
-      ex.printStackTrace();
-    }
     util = new Util();
 
     recoverState = store;
@@ -87,7 +79,7 @@ public class Recover {
     return false;
   }
 
-  public void keyPressed(NativeKeyEvent e) {
+  public void keyPressed(NativeKeyEvent e, Robot robot) {
     if (restoreString.size() < recoverLimit) {
       switch (recoverState) {
         case store:
