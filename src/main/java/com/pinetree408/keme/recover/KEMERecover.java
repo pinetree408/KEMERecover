@@ -12,17 +12,27 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Timer;
 import java.util.TimerTask;
+;
+import com.pinetree408.keme.util.ModeErrorLogger;
+import com.pinetree408.keme.util.TopProcess;
 
 public class KEMERecover implements NativeKeyListener {
 
   static  Recover recover;
+  /** buffer writer to save log */
+  private static ModeErrorLogger meLogger;
+  static TopProcess topProcess;
 
   public KEMERecover() {
+    meLogger = new ModeErrorLogger("result.txt");
+    topProcess = new TopProcess();
+
     recover = new Recover();
   }
 
   public void nativeKeyPressed(NativeKeyEvent e) {
     recover.keyPressed(e);
+    meLogger.log(e, topProcess.getNowLanguage(), topProcess.getNowTopProcess(), recover.getRecoverState(), "null");
   }
 
   public static void main(String[] args) {
@@ -44,7 +54,9 @@ public class KEMERecover implements NativeKeyListener {
         new TimerTask() {
           @Override
           public void run() {
-            recover.start();
+            if (topProcess.isChangeProcess()) {
+              recover.initialize();
+            }
           }
         },
         0,

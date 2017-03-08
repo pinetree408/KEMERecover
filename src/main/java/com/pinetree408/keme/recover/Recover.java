@@ -11,18 +11,11 @@ import java.awt.AWTException;
 import java.awt.Robot;
 
 import com.pinetree408.keme.util.Util;
-import com.pinetree408.keme.util.ModeErrorLogger;
 
 public class Recover {
 
   static Robot robot;
   static Util util;
-  /** buffer writer to save log */
-  private static ModeErrorLogger meLogger;
-
-  static String prevTopProcess;
-  static String nowTopProcess;
-  static String nowLanguage;
 
   private static int recoverState;
   private static final int store = 0;
@@ -44,11 +37,6 @@ public class Recover {
       ex.printStackTrace();
     }
     util = new Util();
-    meLogger = new ModeErrorLogger("result.txt");
-
-    prevTopProcess = "initial";
-    nowTopProcess = "initial";
-    nowLanguage = "initial";
 
     recoverState = store;
     restoreString = new ArrayList<Integer>();
@@ -163,25 +151,15 @@ public class Recover {
           break;
       }
     }
-    meLogger.log(e, nowLanguage, nowTopProcess, "null", String.valueOf(recoverState));
   }
 
-  public void start() {
+  public String getRecoverState() {
+    return String.valueOf(recoverState);
+  }
 
-    nowTopProcess = util.nowTopProcess();
-
-    if (!nowTopProcess.equals("")) {
-
-      if (!prevTopProcess.equals(nowTopProcess)) {
-
-        prevTopProcess = util.nowTopProcess();
-
-        nowLanguage = util.nowLanguage();
-
-        recoverState = store;
-        restoreString.clear();
-        recoveredStringLength = 0;
-      }
-    }
+  public void initialize() {
+    recoverState = store;
+    restoreString.clear();
+    recoveredStringLength = 0;
   }
 }
