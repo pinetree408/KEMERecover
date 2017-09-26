@@ -5,6 +5,7 @@ import org.jnativehook.keyboard.NativeKeyEvent;
 
 import com.sun.jna.Platform;
 
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
 import java.awt.Robot;
@@ -19,6 +20,9 @@ public class Recover {
   private static final int store = 0;
   private static final int recover = 1;
   private static final int recoverLimit = 11;
+  private static final int recoverStrategy = 1;
+  // 0 : Recover
+  // 1 : Auto-swith
 
   private static ArrayList<Integer> restoreString;
   private static int recoveredStringLength;
@@ -48,8 +52,14 @@ public class Recover {
   public boolean isLanguageChangeKeyPressed(int keyCode) {
 
     if (platform.equals("Windows")) {
-      if (keyCode == 112) {
-        return true;
+      if (recoverStrategy == 0) {
+        if (keyCode == 112) {
+          return true;
+        }
+      } else {
+        if (keyCode == 57) {
+          return true;
+        }
       }
     } else if (platform.equals("Mac")) {
       if (cmdKeyPressed == true && keyCode == 57) {
@@ -62,12 +72,17 @@ public class Recover {
   public boolean canRecover(ArrayList<Integer> restoreString) {
 
     if (platform.equals("Windows")) {
-
-      if (((util.realLanguage(restoreString) == "ko") && (util.nowLanguage() == "ko"))
-          || ((util.realLanguage(restoreString) == "en") && (util.nowLanguage() == "en"))) {
-        return true;
+      if (recoverStrategy == 0) {
+        if (((util.realLanguage(restoreString) == "ko") && (util.nowLanguage() == "ko"))
+                || ((util.realLanguage(restoreString) == "en") && (util.nowLanguage() == "en"))) {
+          return true;
+        }
+      } else {
+        if (((util.realLanguage(restoreString) == "ko") && (util.nowLanguage() == "en"))
+            || ((util.realLanguage(restoreString) == "en") && (util.nowLanguage() == "ko"))) {
+          return true;
+        }
       }
-
     } else if (platform.equals("Mac")) {
 
       if (((util.realLanguage(restoreString) == "ko") && (util.nowLanguage() == "en"))
@@ -113,8 +128,15 @@ public class Recover {
             } else {
               if (!(restoreString.size() == 0 && e.getKeyCode() == 14)) {
                 if ((e.getKeyCode() != 112) && (e.getKeyCode() != 14) && (e.getKeyCode() != 3676)) {
-                  restoreString.add(e.getKeyCode());
-                  recoveredStringLength += 1;
+                  if (recoverStrategy == 1) {
+                    if (e.getKeyCode() != 57 && e.getKeyCode() != NativeKeyEvent.VC_SHIFT_L) {
+                      restoreString.add(e.getKeyCode());
+                      recoveredStringLength += 1;
+                    }
+                  } else {
+                    restoreString.add(e.getKeyCode());
+                    recoveredStringLength += 1;
+                  }
                 } else {
                   if (restoreString.size() != 0
                       && recoveredStringLength != 0
@@ -132,12 +154,22 @@ public class Recover {
           if (recoveredStringLength == 0) {
             recoveredStringLength = restoreString.size();
           } else if (recoveredStringLength == 1) {
+            robot.keyPress(KeyEvent.VK_SPACE);
+            robot.keyRelease(KeyEvent.VK_SPACE);
             recoverState = store;
             restoreString.clear();
             recoveredStringLength = 0;
           } else if (e.getKeyCode() != 14 && e.getKeyCode() != 57) {
-            if (recoveredStringLength != 0) {
-              recoveredStringLength -= 1;
+            if (recoverStrategy == 1) {
+              if (e.getKeyCode() != NativeKeyEvent.VC_SHIFT_L) {
+               if (recoveredStringLength != 0) {
+                recoveredStringLength -= 1;
+               }
+              }
+            } else {
+              if (recoveredStringLength != 0) {
+                recoveredStringLength -= 1;
+              }
             }
           }
           break;
