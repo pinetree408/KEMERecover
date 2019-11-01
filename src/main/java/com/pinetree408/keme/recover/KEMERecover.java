@@ -17,7 +17,7 @@ import com.pinetree408.keme.util.TopProcess;
 
 public class KEMERecover implements NativeKeyListener {
 
-  private static  Recover recover;
+  private static Recover recover;
   private static ModeErrorLogger meLogger;
   private static TopProcess topProcess;
 
@@ -46,6 +46,7 @@ public class KEMERecover implements NativeKeyListener {
   }
 
   public static void main(String[] args) {
+    new Tray();
     Logger EventLogger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
     EventLogger.setLevel(Level.OFF);
 
