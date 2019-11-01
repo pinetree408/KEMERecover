@@ -1,8 +1,5 @@
 package com.pinetree408.keme.recover;
 
-/**
- * Created by user on 2017-03-07.
- */
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
@@ -14,20 +11,19 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.awt.AWTException;
 import java.awt.Robot;
-;
+
 import com.pinetree408.keme.util.ModeErrorLogger;
 import com.pinetree408.keme.util.TopProcess;
 
 public class KEMERecover implements NativeKeyListener {
 
-  static  Recover recover;
-  /** buffer writer to save log */
+  private static  Recover recover;
   private static ModeErrorLogger meLogger;
-  static TopProcess topProcess;
+  private static TopProcess topProcess;
 
-  static Robot robot;
+  private static Robot robot;
 
-  public KEMERecover() {
+  private KEMERecover() {
     meLogger = new ModeErrorLogger("result.txt");
     topProcess = new TopProcess();
 
@@ -35,14 +31,18 @@ public class KEMERecover implements NativeKeyListener {
     try {
       robot = new Robot();
     } catch (AWTException ex) {
-      // TODO Auto-generated catch block
       ex.printStackTrace();
     }
   }
 
   public void nativeKeyPressed(NativeKeyEvent e) {
     recover.keyPressed(e, robot);
-    meLogger.log(e, topProcess.getNowLanguage(), topProcess.getNowTopProcess(), recover.getRecoverState(), "null");
+    meLogger.log(
+            e,
+            topProcess.getNowLanguage(),
+            topProcess.getNowTopProcess(),
+            recover.getRecoverState(),
+            "null");
   }
 
   public static void main(String[] args) {
@@ -73,11 +73,6 @@ public class KEMERecover implements NativeKeyListener {
         100);
   }
 
-  public void nativeKeyReleased(NativeKeyEvent e) {
-    //System.out.println("Key Released: " + NativeKeyEvent.getKeyText(e.getKeyCode()));
-  }
-
-  public void nativeKeyTyped(NativeKeyEvent e) {
-    //System.out.println("Key Typed: " + e.getKeyText(e.getKeyCode()));
-  }
+  public void nativeKeyReleased(NativeKeyEvent e) {}
+  public void nativeKeyTyped(NativeKeyEvent e) {}
 }
